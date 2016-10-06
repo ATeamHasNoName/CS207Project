@@ -5,11 +5,9 @@ from timeseries import TimeSeries
 
 class MyTest(unittest.TestCase):
 
-	def length(self):
+	def test_length(self):
 		length = len(TimeSeries(range(1000)))
-		self.assertEqual(1000, 1000)
-
-
+		self.assertEqual(length, 1000)
 
 
 suite = unittest.TestLoader().loadTestsFromModule(MyTest())
