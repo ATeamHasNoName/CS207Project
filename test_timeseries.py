@@ -1,4 +1,4 @@
-mport unittest
+import unittest
 from pytest import raises
 import numpy as np
 from timeseries import TimeSeries
