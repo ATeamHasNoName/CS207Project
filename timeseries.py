@@ -2,9 +2,14 @@ import itertools
 import reprlib
 
 class TimeSeries:
-
-    # Data is a sequence that is required, but can be zero-length
-    def __init__(self, data = []):
+    
+    def __init__(self, data):
+        for datum in data:
+            try:
+                int(datum)
+            except ValueError:
+                print('[Error] List has values that are not numbers.')
+                return
         self._timeseries = list(data)
 
     def __len__(self):
@@ -18,6 +23,11 @@ class TimeSeries:
     def __setitem__(self, key, value):
         if key >= self.__len__():
             raise IndexError('Index chosen is out of range.')
+        try:
+            int(value)
+        except ValueError:
+            print('[Error] Value is not a number.')
+            return
         self._timeseries[key] = value
 
     def __repr__(self):
@@ -37,4 +47,3 @@ class TimeSeries:
             first = str(self._timeseries[0])
             last = str(self._timeseries[-1])
         return '%s\nLength: %d\nFirst: %s, Last: %s' % (class_name, len(self._timeseries), first, last)
-    
