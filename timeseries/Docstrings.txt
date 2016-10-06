@@ -1,0 +1,78 @@
+
+"""
+    An class to manage a time series data 
+    
+    Parameters:
+    ----------
+    list: Takes in a list of time series data. 
+
+    Functions:
+    ---------
+
+    1) constructor(__init__) - Given a set of time series data as a list, it can construct an object of the class time series, which inherit all the functions of the class time series. 
+
+    2) __len__ - returns the lenght of the list
+
+    3) __getitem__ - Takes in a key and returns the the item in the list corresponding to the key
+
+    4) __setitem__ - takes key and value and updates/creates the value for that key 
+
+    5) __repr__ - Print out the first 100 elements of the time series followed by ellipses.
+
+    6) __str__ - print out the class name, length and the first and last elements of the list. 
+
+    
+ ""
+
+        
+__init__
+
+"""
+    This is the only constructor for the time series class. 
+    
+    Parameters
+    ----------
+    data: a list of single set of numerical data, corresponding to the time series data
+
+        
+    Returns
+    -------
+    an object of the type time series and assigns all the members of the class to the object.
+        
+    Notes
+    -----
+    PRE: 
+    	- Since it assumes time series data, it assumes that the data will be sorted. Otherwise tests may fail and the function is not prepared to handle that error. The user must take care of it. 
+    	- In case non numerical data is present, the function will return a value error. 
+
+    WARNINGS:
+        - If you provide an unsorted list this function is not guaranteed to terminate but may cause some errors
+
+
+
+    """
+
+__str__ - 
+
+"""
+	This function basically shows the length and the first and the last elements of the list object.     
+    
+    Parameters
+    ----------
+    None. It is a function of the object of the time series type, and it needs no arguments to run.
+
+        
+    Returns
+    -------
+   	It returns a 3 components - the Length, the first and the last element of the original list. 
+        
+    Notes
+    -----
+    PRE: None
+
+    POST: 
+        - If the list is of length 0, then it returns N/A and N/A for the first and last elements
+        - If the list of the length 1, then both the first and last elements would be the same. 
+
+        
+    """
