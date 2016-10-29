@@ -307,10 +307,14 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         '''
         class_name = type(self).__name__
         myrepr = reprlib.aRepr
-        myrepr.maxlist = 2 # More than 100 then replace with ellipses
-        components = myrepr.repr(self.valuesseq)
+        myrepr.maxlist = 100 # More than 100 then replace with ellipses
+        
+        if self.__isTimeNone:
+            components = myrepr.repr([(i, x) for i, x in enumerate(self.valuesseq)])
+        else:
+            components = myrepr.repr(list(zip(self.timesseq, self.valuesseq)))
         components = components[components.find('['):]
-        return '{}({})'.format(class_name, components)   
+        return '{}({})'.format(class_name, components)
     
     def __str__(self):
         '''
