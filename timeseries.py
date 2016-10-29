@@ -127,28 +127,41 @@ class TimeSeries:
 
 
     def __getitem__(self, time):
-
         '''
-         >>> t = [1.5, 2, 2.5, 3, 10.5]
-        >>> v = [1, 3, 0, 1.5, 1]
+        Takes key as input and returns corresponding item in sequence.
+        Parameters
+        ----------
+        time : int or float
+            A potential time series time
+        Returns
+        -------
+        float
+            Time series value associated with the given time
+        >>> t = [1, 1.5, 2, 2.5, 10]
+        >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(t, v)
         >>> a[2.5]
-        0
+        0.5
         '''
-
-        if key >= self.__len__():
-            raise IndexError('Index chosen is out of range.')
-        return self.__valuesseq[self.times_to_index[float(time)]]
-
-
+        try:
+            return self.__valuesseq[self.times_to_index[float(time)]]
+        except KeyError:  # not present
+            raise KeyError(str(time) + ' is not present in the TimeSeries.')
 
 
     def __setitem__(self, time, value):
-
         '''
-
-        >>> t = [1.5, 2, 2.5, 3, 10.5]
-        >>> v = [1, 3, 0, 1.5, 1]
+        
+        ----------
+        time : int or float
+            A time series time
+        value : int or float
+            A time series value
+        Returns
+        -------
+        Modified in-place
+        >>> t = [1, 1.5, 2, 2.5, 10]
+        >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(t, v)
         >>> a[1] = 12.0
         >>> a[1]
@@ -157,15 +170,12 @@ class TimeSeries:
         >>> a[5]
         9.0
         '''
-        if key >= self.__len__():
-            raise IndexError('Index chosen is out of range.')
         try:
-            #int(value)
-            self.__valuesseq[self.times_to_index[float(times)]] = float(value)
-        except ValueError:
-            print('[Error] Value is not a number.')
-            return
-        #self._timeseries[time] = value
+            self.__valuesseq[self.times_to_index[float(time)]] = float(value)
+        except KeyError:  # not present
+            times = list(self.timesseq) + [time]
+            values = list(self.valuesseq) + [value]
+            self.__init__(times, values)
 
 
 
