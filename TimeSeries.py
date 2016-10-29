@@ -157,7 +157,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         self.repOK(self.timesseq, self.valuesseq)
         
         if self.__isTimeNone:
-            if time > len(self):
+            if time >= len(self):
                 raise IndexError('Time does not exist.')
             return self.valuesseq[time]
         else:
@@ -184,7 +184,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         '''
         indexToInsert = -1
         if self.__isTimeNone:
-            if time > len(self):
+            if time >= len(self):
                 raise IndexError('Time does not exist.')
             else:
                 indexToInsert = time
@@ -307,7 +307,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         '''
         class_name = type(self).__name__
         myrepr = reprlib.aRepr
-        myrepr.maxlist = 100 # More than 100 then replace with ellipses
+        myrepr.maxlist = 2 # More than 100 then replace with ellipses
         components = myrepr.repr(self.valuesseq)
         components = components[components.find('['):]
         return '{}({})'.format(class_name, components)   
