@@ -1,48 +1,51 @@
 import itertools
 import reprlib
+import numpy as np
 
 class TimeSeries:
+    '''
+    List implementation of time series
     
+    RepInv: Times and values must only include numbers, and must be same length.
+    '''
     def __init__(self, times, values):
+        self.repOK(times, values)
         
-        '''
-
-        >>> t = [1.5, 2, 2.5, 3, 10.5]
-        >>> v = [1, 3, 0, 1.5, 1]
-        >>> z = TimeSeries(t,v)
-        >>> z[3]
-        1.5
-
-        '''
-
-        #numpy - provide a length of the sequence
-        times = np.array(times, dtype=float)
-        values = np.array(values, dtype=float)
-
-        #sort ties in ascending order
-        sort_order = np.argsort(times)
-        times = times[sort_order]
-        values = values[sort_order]
-
-        #create private propterty
-        self.__timesseq = np.array(times)
-        self.__valuesseq = np.array(values)
+        # Sort times and values in ascending order of time - It's just neater that way
+        times, values = (list(x) for x in zip(*sorted(zip(times, values), key=lambda pair: pair[0])))
+        
+        self.__timesseq = list(times)
+        self.__valuesseq = list(values)
         self.__times_to_index = {t: i for i, t in enumerate(times)}
-
-    @ propterty
+        
+    def repOK(self, times, values):
+        assert self._hasOnlyNumbers(times) and self._hasOnlyNumbers(values), "Both times and values should only include numbers"
+        assert len(times) == len(values), "Length of times and values must be the same"
+    
+    def _hasOnlyNumbers(self, arr):
+        '''
+        Private function to test if the input array consists of only numbers
+        '''
+        for i in arr:
+            try:
+                int(i)
+            except ValueError:
+                return False
+        return True
+        
+    @property
     def timesseq(self):
         '''
-        Time serires index
-        Priviate property - can't be called directly
+        Time series index
+        Private property - can't be called directly
         '''
         return self.__timesseq
 
-
-    @ propterty
+    @property
     def valuesseq(self):
         '''
         Time serires value
-        Priviate property - can't be called directly
+        Private property - can't be called directly
         '''
         return self.__valuesseq
 
@@ -53,9 +56,7 @@ class TimeSeries:
         Priviate property - can't be called directly
         '''
         return self.__times_to_index
-
-
-
+    
     def times(self):
         '''
         Returns the times sequence.
@@ -108,12 +109,10 @@ class TimeSeries:
         >>> a.items()
         [(1.0, 0.0), (1.5, 2.0), (2.0, -1.0), (2.5, 0.5), (10.0, 0.0)]
         '''
-        return [(time, self[time]) for time in self.__timesseq]
-
-
-
+        self.repOK(self.timesseq, self.valuesseq)
+        return list(zip(self.timesseq, self.valuesseq))
+    
     def __len__(self):
-
         '''
         >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
@@ -123,11 +122,10 @@ class TimeSeries:
         >>> len(TimeSeries([], []))
         0
         '''
+        self.repOK(self.timesseq, self.valuesseq)
         return len(self.timesseq)
 
-
     def __getitem__(self, time):
-
         '''
          >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
@@ -135,18 +133,16 @@ class TimeSeries:
         >>> a[2.5]
         0
         '''
-
-        if key >= self.__len__():
-            raise IndexError('Index chosen is out of range.')
-        return self.__valuesseq[self.times_to_index[float(time)]]
-
-
-
+        self.repOK(self.timesseq, self.valuesseq)
+        if time not in self.times_to_index:     
+            raise IndexError('Time does not exist.')
+        return self.valuesseq[self.times_to_index[float(time)]]
 
     def __setitem__(self, time, value):
-
         '''
-
+        This does not allow us to extend the sequence.
+        It only modifies an existing time's value.
+        
         >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
         >>> a = TimeSeries(t, v)
@@ -157,81 +153,15 @@ class TimeSeries:
         >>> a[5]
         9.0
         '''
-        if key >= self.__len__():
-            raise IndexError('Index chosen is out of range.')
-        try:
-            #int(value)
-            self.__valuesseq[self.times_to_index[float(times)]] = float(value)
-        except ValueError:
-            print('[Error] Value is not a number.')
-            return
-        #self._timeseries[time] = value
-
-
-
-    def __str__(self):
-       '''
-       Printable representation of sequence
-
-        >>> t = [1.5, 2, 2.5, 3, 10.5]
-        >>> v = [1, 3, 0, 1.5, 1]
-        >>> a = TimeSeries(t, v)  # less than 6
-        >>> str(a)
-        'Time Series Length: 5 [1.0, 3.0, 0.0, 1.5, 1.0]'
-        >>> t = [1.5, 2, 2.5, 3, 10.5, 13, 16]
-        >>> v = [1, 3, 0, 1.5, 1, 2, 9]
-        >>> a = TimeSeries(t, v)  # longer than 6
-        >>> str(a)
-        'Length: 7 [1.0, 3.0, ..., 9.0]'
-       '''
-       
-        n = len(self)
-        if n > 6:
-            return('Time Series Length: {} [{},{},...,{}]'.format(
-            n, self[self.__timesseq[0]], self[self.__timesseq[1]], self[self.__timesseq[-1]]))
-        else:
-            list_time = ', '.join([v for v in self])
-            return('Time Series Length: {} [{}]'.format(n, list_time))
-
-
-
-
-
-    def __repr__(self):
-        class_name = type(self).__name__
-        myrepr = reprlib.aRepr
-        myrepr.maxlist = 100 # More than 100 then replace with ellipses
-        components = myrepr.repr(self._timeseries)
-        components = components[components.find('['):]
-        return '{}({})'.format(class_name, components)   
-
-
-
-    def __contains__(self, time):
-        '''
-        Takes a time and returns true if it is in the times array.
-        Parameters
-        ----------
-        time : int or float
-            A time series time
-        Returns
-        -------
-        bool
-            Whether the time is present in the time series
-        >>> t = [1, 1.5, 2, 2.5, 10]
-        >>> v = [0, 2, -1, 0.5, 0]
-        >>> a = TimeSeries(t, v)
-        >>> 1 in a
-        True
-        >>> 3 in a
-        False
-        '''
-        return float(time) in self.times_to_index.keys()
-    
-
-
+        if time not in self.times_to_index:     
+            raise IndexError('Time does not exist.')
+        self.valuesseq[self.times_to_index[time]] = value
+        self.repOK(self.timesseq, self.valuesseq)
+        
     def __iter__(self):
         '''
+        Iterates over values.
+        
         >>> t = [1, 1.5, 2, 2.5, 10]
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(t, v)
@@ -243,11 +173,10 @@ class TimeSeries:
         0.5
         0.0
         '''
-        for v in self.__valuesseq:
-            return v
+        for v in self.valuesseq:
+            yield v
 
-
-     def itertimes(self):
+    def itertimes(self):
         '''
         Iterates over the times array.
         Parameters
@@ -268,7 +197,7 @@ class TimeSeries:
         2.5
         10.0
         '''
-        for t in self.__timesseq:
+        for t in self.timesseq:
             yield t
 
     def itervalues(self):
@@ -292,7 +221,7 @@ class TimeSeries:
         0.5
         0.0
         '''
-        for v in self.__valuesseq:
+        for v in self.valuesseq:
             yield v
 
     def iteritems(self):
@@ -316,10 +245,30 @@ class TimeSeries:
         (2.5, 0.5)
         (10.0, 0.0)
         '''
-        for t, v in zip(self.__timesseq, self.__valuesseq):
+        for t, v in zip(self.timesseq, self.valuesseq):
             yield t, v
 
-
-
-
-
+    def __repr__(self):
+        '''
+        Only returns values without times.
+        If more than 100 values, the output will be truncated with ellipses.
+        '''
+        class_name = type(self).__name__
+        myrepr = reprlib.aRepr
+        myrepr.maxlist = 100 # More than 100 then replace with ellipses
+        components = myrepr.repr(self.valuesseq)
+        components = components[components.find('['):]
+        return '{}({})'.format(class_name, components)   
+    
+    def __str__(self):
+        '''
+        Only returns values without times.
+        Shows the length of the time series, and first and last values.
+        '''
+        class_name = type(self).__name__
+        first = 'N/A'
+        last = 'N/A'
+        if len(self) > 0:
+            first = str(self.valuesseq[0])
+            last = str(self.valuesseq[-1])
+        return '%s\nLength: %d\nFirst (oldest): %s, Last (newest): %s' % (class_name, len(self), first, last)
