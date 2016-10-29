@@ -2,12 +2,14 @@ import itertools
 import reprlib
 import numpy as np
 
-class TimeSeries:
+class TimeSeries(SizedContainerTimeSeriesInterface):
     '''
-    List implementation of time series
-    Supports both single and double vector implementations. Times input is optional.
+    AbsFun: two lists, one for times and one for values represent the sized container time series. 
+    The list of times is optional and if it is not provided, times are treated as the indexes of the values 
+    list. There cannot be duplicate times as there should only be one value recorded at each time.
     
-    RepInv: Times and values must only include numbers, and must be same length, if times is included.
+    RepInv: Times and values must only include numbers, and must be same length, if times is included. There 
+    cannot be duplicate times.
     '''
     def __init__(self, values, times=None):
         self.repOK(times, values)
@@ -31,6 +33,7 @@ class TimeSeries:
         else:
             assert self._hasOnlyNumbers(times) and self._hasOnlyNumbers(values), "Both times and values should only include numbers"
             assert len(times) == len(values), "Length of times and values must be the same"
+            assert len(times) == len(set(times)), "Times cannot be duplicated, i.e. there can only be one unique value for each time"
     
     def _hasOnlyNumbers(self, arr):
         '''
@@ -69,7 +72,7 @@ class TimeSeries:
     
     def times(self):
         '''
-        Returns the times sequence.
+        Returns the times sequence, or None if there are no times provided in the Constructor.
         Parameters
         ----------
         None
@@ -106,13 +109,13 @@ class TimeSeries:
     def items(self):
         '''
         Returns sequence of (time, value) tuples.
+        If time is not provided, returns sequence of (index, value) tuples.
         Parameters
         ----------
         None
         Returns
         -------
-        Numpy array of tuples
-            Time series time-value pairs
+        List of tuples of (time, value)
         >>> t = [1, 1.5, 2, 2.5, 10]
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(t, v)
@@ -127,6 +130,8 @@ class TimeSeries:
     
     def __len__(self):
         '''
+        Returns length of the sequence. This length is specifically the length of the values.
+        
         >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
         >>> a = TimeSeries(t, v)
@@ -140,7 +145,10 @@ class TimeSeries:
 
     def __getitem__(self, time):
         '''
-         >>> t = [1.5, 2, 2.5, 3, 10.5]
+        Returns the value at the specified time. If times are not initialized in constructor, then this 
+        time input will serve as the index in the values array. If item is not found, raise an IndexError.
+        
+        >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
         >>> a = TimeSeries(t, v)
         >>> a[2.5]
@@ -159,8 +167,10 @@ class TimeSeries:
 
     def __setitem__(self, time, value):
         '''
-        This does not allow us to extend the sequence.
-        It only modifies an existing time's value.
+        Changes the value at specified time to input value. 
+        This does not allow us to extend the sequence. It only modifies an existing time's value.
+        If times are not initialized in constructor, then this time input will serve as the index in 
+        the values array. If item is not found, raise an IndexError.
         
         >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
@@ -229,8 +239,11 @@ class TimeSeries:
         10.0
         '''
         self.repOK(self.timesseq, self.valuesseq)
-        for t in self.timesseq:
-            yield t
+        if self.__isTimeNone:
+            yield None
+        else:
+            for t in self.timesseq:
+                yield t
 
     def itervalues(self):
         '''
