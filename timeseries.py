@@ -5,22 +5,32 @@ import numpy as np
 class TimeSeries:
     '''
     List implementation of time series
+    Supports both single and double vector implementations. Times input is optional.
     
-    RepInv: Times and values must only include numbers, and must be same length.
+    RepInv: Times and values must only include numbers, and must be same length, if times is included.
     '''
-    def __init__(self, times, values):
+    def __init__(self, values, times=None):
         self.repOK(times, values)
         
         # Sort times and values in ascending order of time - It's just neater that way
-        times, values = (list(x) for x in zip(*sorted(zip(times, values), key=lambda pair: pair[0])))
-        
-        self.__timesseq = list(times)
-        self.__valuesseq = list(values)
-        self.__times_to_index = {t: i for i, t in enumerate(times)}
+        if times is not None:
+            self.__isTimeNone = False
+            times, values = (list(x) for x in zip(*sorted(zip(times, values), key=lambda pair: pair[0])))
+            self.__timesseq = list(times)
+            self.__valuesseq = list(values)
+            self.__times_to_index = {t: i for i, t in enumerate(times)}
+        else:
+            self.__isTimeNone = True
+            self.__timesseq = None
+            self.__valuesseq = list(values)
+            self.__times_to_index = None
         
     def repOK(self, times, values):
-        assert self._hasOnlyNumbers(times) and self._hasOnlyNumbers(values), "Both times and values should only include numbers"
-        assert len(times) == len(values), "Length of times and values must be the same"
+        if times is None:
+            assert self._hasOnlyNumbers(values), "Values should only include numbers"
+        else:
+            assert self._hasOnlyNumbers(times) and self._hasOnlyNumbers(values), "Both times and values should only include numbers"
+            assert len(times) == len(values), "Length of times and values must be the same"
     
     def _hasOnlyNumbers(self, arr):
         '''
@@ -110,7 +120,10 @@ class TimeSeries:
         [(1.0, 0.0), (1.5, 2.0), (2.0, -1.0), (2.5, 0.5), (10.0, 0.0)]
         '''
         self.repOK(self.timesseq, self.valuesseq)
-        return list(zip(self.timesseq, self.valuesseq))
+        if self.__isTimeNone:
+            return [(i, x) for i, x in enumerate(self.valuesseq)]
+        else:
+            return list(zip(self.timesseq, self.valuesseq))
     
     def __len__(self):
         '''
@@ -123,7 +136,7 @@ class TimeSeries:
         0
         '''
         self.repOK(self.timesseq, self.valuesseq)
-        return len(self.timesseq)
+        return len(self.valuesseq)
 
     def __getitem__(self, time):
         '''
@@ -134,9 +147,15 @@ class TimeSeries:
         0
         '''
         self.repOK(self.timesseq, self.valuesseq)
-        if time not in self.times_to_index:     
-            raise IndexError('Time does not exist.')
-        return self.valuesseq[self.times_to_index[float(time)]]
+        
+        if self.__isTimeNone:
+            if time > len(self):
+                raise IndexError('Time does not exist.')
+            return self.valuesseq[time]
+        else:
+            if time not in self.times_to_index:     
+                raise IndexError('Time does not exist.')
+            return self.valuesseq[self.times_to_index[float(time)]]
 
     def __setitem__(self, time, value):
         '''
@@ -153,9 +172,20 @@ class TimeSeries:
         >>> a[5]
         9.0
         '''
-        if time not in self.times_to_index:     
-            raise IndexError('Time does not exist.')
-        self.valuesseq[self.times_to_index[time]] = value
+        indexToInsert = -1
+        if self.__isTimeNone:
+            if time > len(self):
+                raise IndexError('Time does not exist.')
+            else:
+                indexToInsert = time
+        else:
+            if time not in self.times_to_index:     
+                raise IndexError('Time does not exist.')
+            else:
+                indexToInsert = self.times_to_index[time]
+        if indexToInsert == -1:
+            raise ValueError('Error occured while setting item.')
+        self.valuesseq[indexToInsert] = value
         self.repOK(self.timesseq, self.valuesseq)
         
     def __iter__(self):
@@ -249,7 +279,12 @@ class TimeSeries:
         (10.0, 0.0)
         '''
         self.repOK(self.timesseq, self.valuesseq)
-        for t, v in zip(self.timesseq, self.valuesseq):
+        dictOfItems = {}
+        if self.__isTimeNone:
+            dictOfItems = [(i, x) for i, x in enumerate(self.valuesseq)]
+        else:
+            dictOfItems = zip(self.timesseq, self.valuesseq)
+        for t, v in dictOfItems:
             yield t, v
 
     def __repr__(self):

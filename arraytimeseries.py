@@ -14,7 +14,7 @@ class ArrayTimeSeries(TimeSeries):
         >>> z[3]
         1.5
         '''
-        TimeSeries.__init__(self, times, values)
+        TimeSeries.__init__(self, values, times)
         # Represent data now as numpy array
         self.__timesseq = np.array(times, dtype=float)
         self.__valuesseq = np.array(values, dtype=float)
