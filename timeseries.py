@@ -173,6 +173,7 @@ class TimeSeries:
         0.5
         0.0
         '''
+        self.repOK(self.timesseq, self.valuesseq)
         for v in self.valuesseq:
             yield v
 
@@ -197,6 +198,7 @@ class TimeSeries:
         2.5
         10.0
         '''
+        self.repOK(self.timesseq, self.valuesseq)
         for t in self.timesseq:
             yield t
 
@@ -221,6 +223,7 @@ class TimeSeries:
         0.5
         0.0
         '''
+        self.repOK(self.timesseq, self.valuesseq)
         for v in self.valuesseq:
             yield v
 
@@ -245,6 +248,7 @@ class TimeSeries:
         (2.5, 0.5)
         (10.0, 0.0)
         '''
+        self.repOK(self.timesseq, self.valuesseq)
         for t, v in zip(self.timesseq, self.valuesseq):
             yield t, v
 
