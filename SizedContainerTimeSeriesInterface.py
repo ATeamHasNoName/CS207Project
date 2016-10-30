@@ -1,4 +1,6 @@
 import abc
+from TimeSeriesInterface import TimeSeriesInterface
+
 class SizedContainerTimeSeriesInterface(TimeSeriesInterface):
     """
     This is the interface for container based Time Series. This extends from the more general 
