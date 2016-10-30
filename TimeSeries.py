@@ -525,7 +525,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         other_times, other_values = (list(x) for x in zip(*sorted(zip(other.itertimes(), other.itervalues()), key=lambda pair: pair[0])))
         self_times, self_values = (list(x) for x in zip(*sorted(zip(self.itertimes(), self.itervalues()), key=lambda pair: pair[0])))
         if (other_times != self_times):
-            raise ValueError(str(self)+ ' and ' + str(other) + ' must have the same time points')
+            raise ValueError('Time sequence of both TimeSeries must be identical, i.e. same length and same times')
         return other_values, self_values, self_times
     
     def __eq__(self, other):
@@ -671,8 +671,9 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         if self.__isTimeNone:
             return TimeSeries([self.values()[i] * other.values()[i] for i in range(0, len(self.values()))])
         return TimeSeries([self_values[i] * other_values[i] for i in range(0, len(self_values))], self_times)
-        
-    def get_interpolated(self, tval):
+    
+    
+    def _get_interpolated(self, tval, timesToUse):
         '''
         Returns the value in TimeSeries corresponding to a single time tval.
         If tval does not exist, return interpolated value.
@@ -693,24 +694,27 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a.get_interpolated(1)
         1.2
         '''
-        for i in range(len(self)-1):
-            # tval less than smallest time
-           
-            if tval <= self.__timesseq[i]:
-                return self[self.__timesseq[i]]
 
+        print(self.timesseq)
+        for i in range(len(self)-1):
+            print(tval)
+            print(timesToUse[i])
+            # tval less than smallest time
+            if tval <= timesToUse[i]:
+                return self[timesToUse[i]]
             # tval within range of time series times
-            if (tval > self.__timesseq[i]) & (tval < self.__timesseq[i+1]):
-               
+            if (tval > timesToUse[i]) & (tval < timesToUse[i+1]):
                 # calculate interpolated value
-                time_delta = self.__timesseq[i+1] - self.__timesseq[i]
-                
-                step = (tval - self.__timesseq[i]) / time_delta
-                
-                v_delta = self.__valuesseq[i+1] - self.__valuesseq[i]
-                return v_delta * step + self.__valuesseq[i]
+                time_delta = timesToUse[i+1] - timesToUse[i]
+                step = (tval - timesToUse[i]) / time_delta
+                print(step)
+                v_delta = self.valuesseq[i+1] - self.valuesseq[i]
+                print("v is", v_delta)
+                print(self.valuesseq[i])
+                return v_delta * step + self.valuesseq[i]
         # tval above range of time series times
-        return self[self.__timesseq[len(self)-1]]
+        return self[timesToUse[len(self)-1]]
+    
     
     def interpolate(self, tseq):
         '''
@@ -732,5 +736,28 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a.interpolate([-100, 100])
         TimeSeries([1.0, 3.0])
         '''
-        valseq = [self.get_interpolated(t) for t in tseq]
-        return TimeSeries(valseq ,tseq)
+        timesToUse = range(len(self)) if self.__isTimeNone else self.timesseq
+        valseq = [self._get_interpolated(t, timesToUse) for t in tseq]
+        return TimeSeries(values =valseq , times=tseq)
+    
+    def __contains__(self, value):
+        '''
+        Takes a time and returns true if it is in the values array.
+        Parameters
+        ----------
+        value : int or float
+            A time series value
+        Returns
+        -------
+        bool
+            Whether the value is present in the value series
+        >>> t = [1, 1.5, 2, 2.5, 10]
+        >>> v = [0, 2, -1, 0.5, 0]
+        >>> a = TimeSeries(v, t)
+        >>> 1 in a
+        True
+        >>> 3 in a
+        False
+        '''
+        return value in self.values()
+        
