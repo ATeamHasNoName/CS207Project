@@ -14,7 +14,18 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
     """
     def __init__(self, values, times=None):
         """
+        Initializes a TimeSeries instance with value list and optional times list
         Represents data internally as lists.
+
+        Parameters
+        ----------
+        values : list of ints or floats (A sequence of numerical values)
+        times : list of ints or floats  (A sequence of numerical times)
+
+        Returns
+        -------
+        TimeSeries
+            A time series object with times and values equal to the parameters
         
         >>> t = [1.5, 2, 2.5, 3, 10.5]
         >>> v = [1, 3, 0, 1.5, 1]
@@ -22,6 +33,9 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> z[3]
         1.5
         """
+        if (len(values) == 0):
+            raise ValueError('Empty values passed in')
+
         self.repOK(times, values)
         
         # Sort times and values in ascending order of time - It's just neater that way
@@ -36,6 +50,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
             self.__timesseq = None
             self.__valuesseq = list(values)
             self.__times_to_index = None
+
         
     def repOK(self, times, values):
         if times is None:
@@ -48,6 +63,20 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
     def _hasOnlyNumbers(self, arr):
         """
         Private function to test if the input array consists of only numbers
+
+        Parameters
+        ----------
+        arr: A sequences of any value type
+
+        Returns
+        -------
+        Boolen value if all elements in the array are numeric
+
+        >>> t = [1.5, 2, 2.5, 3, 10.5]
+        >>> v = [1, 3, 0, 1.5, 1]
+        >>> z = TimeSeries(v, t)
+        >>> z._hasOnlyNumbers(t)
+        True
         """
         for i in arr:
             try:
@@ -112,7 +141,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(v, t)
         >>> a.times()
-        array([  1. ,   1.5,   2. ,   2.5,  10. ])
+        [1, 1.5, 2, 2.5, 10]
         """
         return self.timesseq
 
@@ -137,7 +166,8 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(v, t)
         >>> a.values()
-        array([ 0. ,  2. , -1. ,  0.5,  0. ])
+        [0, 2, -1, 0.5, 0]
+
         """
         return self.valuesseq
 
@@ -158,7 +188,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(v, t)
         >>> a.items()
-        [(1.0, 0.0), (1.5, 2.0), (2.0, -1.0), (2.5, 0.5), (10.0, 0.0)]
+        [(1, 0), (1.5, 2), (2, -1), (2.5, 0.5), (10, 0)]
         """
         self.repOK(self.timesseq, self.valuesseq)
         if self.__isTimeNone:
@@ -183,8 +213,6 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a = TimeSeries(v, t)
         >>> len(a)
         5
-        >>> len(TimeSeries([], []))
-        0
         """
         self.repOK(self.timesseq, self.valuesseq)
         return len(self.valuesseq)
@@ -233,11 +261,12 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         
         Parameters
         ----------
-        time, value
+        time : int or float
+        value : int or float
         
         Returns
         -------
-        None
+        Modified the value specified by 
         
         Notes
         -----
@@ -246,15 +275,16 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         POST:
             - Value is modified at the time specified. We are not allowed to extend the sequence.
         
-        >>> t = [1.5, 2, 2.5, 3, 10.5]
-        >>> v = [1, 3, 0, 1.5, 1]
+        >>> t = [1, 1.5, 2, 2.5, 10]
+        >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(v, t)
         >>> a[1] = 12.0
         >>> a[1]
         12.0
-        >>> a[5] = 9.0
-        >>> a[5]
-        9.0
+        >>> a[2.5] = 3.0
+        >>> a[2.5]
+        3.0
+
         """
         indexToInsert = -1
         if self.__isTimeNone:
@@ -289,12 +319,13 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a = TimeSeries(v, t)
         >>> for val in a:
         ...     print(val)
-        0.0
-        2.0
-        -1.0
+        0
+        2
+        -1
         0.5
-        0.0
+        0
         """
+
         self.repOK(self.timesseq, self.valuesseq)
         for v in self.valuesseq:
             yield v
@@ -316,11 +347,11 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a = TimeSeries(v, t)
         >>> for val in a.itertimes():
         ...     print(val)
-        1.0
+        1
         1.5
-        2.0
+        2
         2.5
-        10.0
+        10
         """
         self.repOK(self.timesseq, self.valuesseq)
         if self.__isTimeNone:
@@ -346,11 +377,11 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a = TimeSeries(v, t)
         >>> for val in a.itervalues():
         ...     print(val)
-        0.0
-        2.0
-        -1.0
+        0
+        2
+        -1
         0.5
-        0.0
+        0
         """
         self.repOK(self.timesseq, self.valuesseq)
         for v in self.valuesseq:
@@ -373,11 +404,11 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         >>> a = TimeSeries(v, t)
         >>> for val in a.iteritems():
         ...     print(val)
-        (1.0, 0.0)
-        (1.5, 2.0)
-        (2.0, -1.0)
+        (1, 0)
+        (1.5, 2)
+        (2, -1)
         (2.5, 0.5)
-        (10.0, 0.0)
+        (10, 0)
         """
         self.repOK(self.timesseq, self.valuesseq)
         dictOfItems = {}
@@ -681,24 +712,21 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         (i.e. do not extrapolate).
         This method assume the times in timesseq are monotonically
         increasing; otherwise, results may not be as expected.
+
         Parameters
         ----------
         tval : int or float
-            Time series value
+        Time series value
+
         Returns
         -------
         float
-            Either the actual or interpolated value associated with the time
-        >>> a = TimeSeries([1, 2, 3],[0, 5, 10])
-        >>> b = TimeSeries([100, -100],[2.5, 7.5])
-        >>> a.get_interpolated(1)
-        1.2
+        Either the actual or interpolated value associated with the time
+
+    
         '''
 
-        print(self.timesseq)
         for i in range(len(self)-1):
-            print(tval)
-            print(timesToUse[i])
             # tval less than smallest time
             if tval <= timesToUse[i]:
                 return self[timesToUse[i]]
@@ -707,10 +735,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
                 # calculate interpolated value
                 time_delta = timesToUse[i+1] - timesToUse[i]
                 step = (tval - timesToUse[i]) / time_delta
-                print(step)
                 v_delta = self.valuesseq[i+1] - self.valuesseq[i]
-                print("v is", v_delta)
-                print(self.valuesseq[i])
                 return v_delta * step + self.valuesseq[i]
         # tval above range of time series times
         return self[timesToUse[len(self)-1]]
@@ -722,19 +747,24 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         of a new sequence tseq and interpolated values in the TimeSeries.
         This method assume the times in timesseq are monotonically
         increasing; otherwise, results may not be as expected.
+
         Parameters
         ----------
         tseq : list of ints or floats
-            Time series times to interpolate
+        Time series times to interpolate
+
         Returns
         -------
         TimeSeries
             Time series object with all the interpolated values for the
             given times.
+
         >>> a = TimeSeries([1, 2, 3],[0, 5, 10])
         >>> b = TimeSeries([100, -100],[2.5, 7.5])
+        >>> a.interpolate([1])
+        TimeSeries([(1, 1.2)])
         >>> a.interpolate([-100, 100])
-        TimeSeries([1.0, 3.0])
+        TimeSeries([(-100, 1), (100, 3)])
         '''
         timesToUse = range(len(self)) if self.__isTimeNone else self.timesseq
         valseq = [self._get_interpolated(t, timesToUse) for t in tseq]
@@ -742,21 +772,23 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
     
     def __contains__(self, value):
         '''
-        Takes a time and returns true if it is in the values array.
+        Takes a value and returns true if it is in the values array.
+
         Parameters
         ----------
-        value : int or float
-            A time series value
+        value : int or float, a time series value
+
         Returns
         -------
         bool
-            Whether the value is present in the value series
+        Whether the value is present in the value series
+
         >>> t = [1, 1.5, 2, 2.5, 10]
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = TimeSeries(v, t)
-        >>> 1 in a
+        >>> -1 in a
         True
-        >>> 3 in a
+        >>> 10 in a
         False
         '''
         return value in self.values()
