@@ -1,6 +1,7 @@
 import itertools
 import reprlib
 import numpy as np
+from lazy import LazyOperation
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 class TimeSeries(SizedContainerTimeSeriesInterface):
@@ -66,7 +67,14 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
             return [(i, x) for i, x in enumerate(vals)]
         else:
             return list(zip(self.timesseq, vals))
-        
+
+
+    @property
+    def lazy(self):
+        def identity(args):
+            return args
+        return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)	
+
     @property
     def timesseq(self):
         """
@@ -421,6 +429,7 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         -------
         Length, First and Last values.
         """
+        print("Inside string");
         class_name = type(self).__name__
         first = 'N/A'
         last = 'N/A'
@@ -760,4 +769,23 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
         False
         '''
         return value in self.values()
-        
+ 
+
+    def check_length(a,b):
+        print("A = ")
+        print(a)
+        print("B = ")
+        print(b)
+        return len(a) == len(b)
+
+
+def main():
+    x = TimeSeries([1,2,3,4],[1,4,9,16])
+    print(x)
+    y = x.lazy
+    print("Before eval")
+    print(y.eval())
+    
+
+if __name__ == "__main__":
+    main()

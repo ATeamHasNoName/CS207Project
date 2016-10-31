@@ -372,3 +372,10 @@ class TimeSeriesTest(unittest.TestCase):
 	def test_notcontains_without_time(self):
 		_s1 = TimeSeries(values=range(0, 10000))
 		self.assertFalse(-1 in _s1)
+
+	def test_lazy(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		print(b)
+		self.assertTrue(True)
+		#self.assert()
