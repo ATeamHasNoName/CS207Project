@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from TimeSeries import TimeSeries
 
-# py.test --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
+# py.test --doctest-modules  --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
 
 # Test cases for the TimeSeries class
 class TimeSeriesTest(unittest.TestCase):

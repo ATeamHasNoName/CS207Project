@@ -4,7 +4,7 @@ from TimeSeries import TimeSeries
 from ArrayTimeSeries import ArrayTimeSeries
 from test_TimeSeries import TimeSeriesTest
 
-# py.test --cov --cov-report term-missing ArrayTimeSeries.py test_ArrayTimeSeries.py
+# py.test --doctest-modules --cov --cov-report term-missing ArrayTimeSeries.py test_ArrayTimeSeries.py
 
 # Test cases for the ArrayTimeSeries class
 class ArrayTimeSeriesTest(TimeSeriesTest):
