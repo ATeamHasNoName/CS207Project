@@ -2,11 +2,9 @@ import unittest
 import numpy as np
 from TimeSeries import TimeSeries
 
-# py.test --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
+# py.test --doctest-modules  --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
 
 # Test cases for the TimeSeries class
-# py.test --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
-
 class TimeSeriesTest(unittest.TestCase):
 
 	def setUp(self):
@@ -40,7 +38,7 @@ class TimeSeriesTest(unittest.TestCase):
 
 	def test_init_without_time_withnonnumber(self):
 		with self.assertRaises(AssertionError):
-			TimeSeries(values=[1, 3, 0, -1.5, "haha", 1])	
+			TimeSeries(values=[1, 3, 0, -1.5, "haha", 1])
 
 	def test_init_with_emptyvalues(self):
 		with self.assertRaises(ValueError):
