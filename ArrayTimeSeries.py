@@ -1,14 +1,15 @@
 import numpy as np
+import numbers
 from TimeSeries import TimeSeries
 
 class ArrayTimeSeries(TimeSeries):
-    '''
+    """
     AbsFun: two numpy arrays, one for times and one for values represent the sized container time series. 
     The list of times is optional and if it is not provided, times are treated as the indexes of the values 
     list. There cannot be duplicate times as there should only be one value recorded at each time.
     
     RepInv: Times and values must only include numbers, and must be same length.
-    '''
+    """
     def __init__(self, times, values):
         """
         Extends from TimeSeries to represent data internally with a numpy array.
@@ -20,7 +21,8 @@ class ArrayTimeSeries(TimeSeries):
         >>> z[3]
         1.5
         """
-        TimeSeries.__init__(self, values, times)
+        TimeSeries.__init__(self, values=values, times=times)
+        times, values = (list(x) for x in zip(*sorted(zip(times, values), key=lambda pair: pair[0])))
         # Represent data now as numpy array
         self.__timesseq = np.array(times, dtype=float)
         self.__valuesseq = np.array(values, dtype=float)
@@ -70,7 +72,11 @@ class ArrayTimeSeries(TimeSeries):
         >>> v = [0, 2, -1, 0.5, 0]
         >>> a = ArrayTimeSeries(t, v)
         >>> a.items()
-        array([[  1. ,   0. ],[  1.5,   2. ],[  2. ,  -1. ],[  2.5,   0.5],[ 10. ,   0. ]])
+        array([[  1. ,   0. ],
+               [  1.5,   2. ],
+               [  2. ,  -1. ],
+               [  2.5,   0.5],
+               [ 10. ,   0. ]])
         """
         self.repOK(self.timesseq, self.valuesseq)
         return np.asarray(list(zip(self.timesseq, self.valuesseq)))
@@ -103,6 +109,8 @@ class ArrayTimeSeries(TimeSeries):
         ArrayTimeSeries([(1.0, 10.0), (2.0, 12.0), (3.0, 8.0)])
         """
         other_values, self_values, self_times = self._valuesSortedByTime(other)
+        if isinstance(other, numbers.Real):
+            return ArrayTimeSeries(self_times, [self_values[i] + other for i in range(0, len(self_values))])    
         return ArrayTimeSeries(self_times, [self_values[i] + other_values[i] for i in range(0, len(self_values))])
     
     # Override to return an ArrayTimeSeries
@@ -133,6 +141,8 @@ class ArrayTimeSeries(TimeSeries):
         ArrayTimeSeries([(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)])
         """
         other_values, self_values, self_times = self._valuesSortedByTime(other)
+        if isinstance(other, numbers.Real):
+            return ArrayTimeSeries(self_times, [self_values[i] - other for i in range(0, len(self_values))]) 
         return ArrayTimeSeries(self_times, [self_values[i] - other_values[i] for i in range(0, len(self_values))])
     
     # Override to return an ArrayTimeSeries
@@ -163,11 +173,13 @@ class ArrayTimeSeries(TimeSeries):
         ArrayTimeSeries([(1.0, 25.0), (2.0, 36.0), (3.0, 16.0)])
         """
         other_values, self_values, self_times = self._valuesSortedByTime(other)
+        if isinstance(other, numbers.Real):
+            return ArrayTimeSeries(self_times, [self_values[i] * other for i in range(0, len(self_values))]) 
         return ArrayTimeSeries(self_times, [self_values[i] * other_values[i] for i in range(0, len(self_values))])
 
     # Override to return ArrayTimeSeries
     def interpolate(self, tseq):
-        '''
+        """
         Returns a TimeSeries object containing the elements
         of a new sequence tseq and interpolated values in the TimeSeries.
         This method assume the times in timesseq are monotonically
@@ -184,8 +196,8 @@ class ArrayTimeSeries(TimeSeries):
         >>> a = TimeSeries([1, 2, 3],[0, 5, 10])
         >>> b = TimeSeries([100, -100],[2.5, 7.5])
         >>> a.interpolate([-100, 100])
-        TimeSeries([1.0, 3.0])
-        '''
+        TimeSeries([(-100, 1), (100, 3)])
+        """
         valseq = [self._get_interpolated(t, self.timesseq) for t in tseq]
         return ArrayTimeSeries(times=tseq, values=valseq)
     
