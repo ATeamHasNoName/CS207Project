@@ -197,7 +197,11 @@ class ArrayTimeSeries(TimeSeries):
         >>> b = TimeSeries([100, -100],[2.5, 7.5])
         >>> a.interpolate([-100, 100])
         TimeSeries([(-100, 1), (100, 3)])
+<<<<<<< HEAD
         """
+=======
+        '''
+>>>>>>> fef514fa1e44a29aacb6603513ca3292b9620035
         valseq = [self._get_interpolated(t, self.timesseq) for t in tseq]
         return ArrayTimeSeries(times=tseq, values=valseq)
     
