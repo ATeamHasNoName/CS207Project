@@ -373,9 +373,31 @@ class TimeSeriesTest(unittest.TestCase):
 		_s1 = TimeSeries(values=range(0, 10000))
 		self.assertFalse(-1 in _s1)
 
-	def test_lazy(self):
+
+	''' Lazy tests '''
+
+	def test_lazy_equal(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		self.assertTrue(a == b.eval())
+
+	def test_lazy_not_equal(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = TimeSeries([1, 2, 4],[0, 5, 10])
+		c = b.lazy
+		self.assertFalse(a == c.eval())
+
+	def test_lazyAdd(self):
+		thunk = lazy_mul(1,2)
+		self.assertTrue(thunk.eval() == 2)
+
+	def test_lazy_len(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		b = a.lazy
 		print(b)
-		self.assertTrue(True)
-		#self.assert()
+		length = len(b)
+		self.assertTrue(length == 2)
+
+	def test_lazy_instance(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
