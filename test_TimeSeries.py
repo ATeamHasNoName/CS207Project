@@ -372,3 +372,27 @@ class TimeSeriesTest(unittest.TestCase):
 	def test_notcontains_without_time(self):
 		_s1 = TimeSeries(values=range(0, 10000))
 		self.assertFalse(-1 in _s1)
+
+	''' Lazy tests '''
+
+	def test_lazy_equal(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		self.assertTrue(a == b.eval())
+
+	def test_lazy_not_equal(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = TimeSeries([1, 2, 4],[0, 5, 10])
+		c = b.lazy
+		self.assertFalse(a == c.eval())
+
+	def test_lazy_len(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		print(b)
+		length = len(b)
+		self.assertTrue(length == 2)
+
+	def test_lazy_instance(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
