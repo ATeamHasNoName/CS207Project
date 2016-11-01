@@ -5,7 +5,7 @@ import numbers
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 class TimeSeries(SizedContainerTimeSeriesInterface):
-	"""
+	""" 
 	AbsFun: two lists, one for times and one for values represent the sized container time series. 
 	The list of times is optional and if it is not provided, times are treated as the indexes of the values 
 	list. There cannot be duplicate times as there should only be one value recorded at each time.
