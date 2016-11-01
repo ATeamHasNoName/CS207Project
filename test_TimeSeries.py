@@ -373,7 +373,10 @@ class TimeSeriesTest(unittest.TestCase):
 		_s1 = TimeSeries(values=range(0, 10000))
 		self.assertFalse(-1 in _s1)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470
 	''' Lazy tests '''
 
 	def test_lazy_equal(self):
@@ -387,17 +390,32 @@ class TimeSeriesTest(unittest.TestCase):
 		c = b.lazy
 		self.assertFalse(a == c.eval())
 
+<<<<<<< HEAD
 	def test_lazyAdd(self):
 		thunk = lazy_mul(1,2)
 		self.assertTrue(thunk.eval() == 2)
+=======
+	def test_lazy_printing(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		self.assertFalse(str(a) == str(b))
+>>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470
 
 	def test_lazy_len(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		b = a.lazy
+<<<<<<< HEAD
 		print(b)
+=======
+>>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470
 		length = len(b)
 		self.assertTrue(length == 2)
 
 	def test_lazy_instance(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470

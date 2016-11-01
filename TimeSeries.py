@@ -791,10 +791,11 @@ if __name__ == "__main__":
     main()
 =======
 import numbers
+from lazy import LazyOperation
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 class TimeSeries(SizedContainerTimeSeriesInterface):
-	"""
+	""" 
 	AbsFun: two lists, one for times and one for values represent the sized container time series. 
 	The list of times is optional and if it is not provided, times are treated as the indexes of the values 
 	list. There cannot be duplicate times as there should only be one value recorded at each time.
@@ -884,7 +885,13 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 			return [(i, x) for i, x in enumerate(vals)]
 		else:
 			return list(zip(self.timesseq, vals))
-		
+
+	@property
+	def lazy(self):
+		def identity(args):
+			return args
+		return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)	
+	
 	@property
 	def timesseq(self):
 		"""
