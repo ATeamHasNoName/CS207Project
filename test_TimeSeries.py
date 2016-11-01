@@ -386,13 +386,19 @@ class TimeSeriesTest(unittest.TestCase):
 		c = b.lazy
 		self.assertFalse(a == c.eval())
 
+	def test_lazy_printing(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		b = a.lazy
+		self.assertFalse(str(a) == str(b))
+
 	def test_lazy_len(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		b = a.lazy
-		print(b)
 		length = len(b)
 		self.assertTrue(length == 2)
 
 	def test_lazy_instance(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
+
+

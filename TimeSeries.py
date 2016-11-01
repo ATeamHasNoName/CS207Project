@@ -831,6 +831,7 @@ def main():
     x = TimeSeries([1,2,3,4],[1,4,9,16])
     print(x)
     y = x.lazy
+    print(y)
     print("Before eval")
     print(y.eval())
     
