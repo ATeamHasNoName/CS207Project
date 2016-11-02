@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from TimeSeries import TimeSeries
-
+from lazy import *
 # py.test --doctest-modules  --cov --cov-report term-missing TimeSeries.py test_TimeSeries.py
 
 # Test cases for the TimeSeries class
@@ -373,7 +373,18 @@ class TimeSeriesTest(unittest.TestCase):
 		_s1 = TimeSeries(values=range(0, 10000))
 		self.assertFalse(-1 in _s1)
 
-	''' Lazy tests '''
+
+	''' Lazy class tests'''
+	def test_lazy_add(self):
+		self.assertTrue(isinstance( lazy_add(1,2), LazyOperation ) == True)
+		
+
+	def test_lazy_mul(self):
+		self.assertTrue(isinstance( lazy_mul(1,2), LazyOperation ) == True)
+		
+
+
+	''' Lazy usage tests '''
 
 	def test_lazy_equal(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
