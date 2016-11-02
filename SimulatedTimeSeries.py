@@ -2,86 +2,55 @@ from random import normalvariate, random
 from itertools import count
 from StreamTimeSeriesInterface import StreamTimeSeriesInterface
 class SimulatedTimeSeries(StreamTimeSeriesInterface):
-
-	# (time, value)
-
-
 	'''
-	1) make_data, produce: You should be able to handle the case where the input is [value]: 
-	your produce will take the k items and package them into (index, value). But if 
-	there is time provided then you just output the (time, value). This means you have to 
-	create two different make_data1, make_data2
+	WORKFLOW - 
+	RELEVANT FILES: 1) This class inherits from the StreamTimeSeriesInterface which is written in the file 
+					StreamTimeSeriesInterface.py
+					2) The test file for this class is test_SimulatedTimeSeries.py 
+						The tests for this file can be run by using this command in the project directory -
+						py.test --cov --cov-report term-missing SimulatedTimeSeries.py test_SimulatedTimeSeries.py
 
-	2) iter: iterate one by one by calling provided generator (do for all 4 iter functions)
+	A BRIEF DESCRIPTION OF THE METHODS in this class:
+	1)Produce(): It is like an __iter__ function which can move multiple elements at a time. 
+			It should be able to handle the case where the input is
+				a) Tuple like (time,value)
+				b) Tuple like (time,)
+				c) Just a float value without time
 
-	3) test_SimulatedTimeSeries.py: Look inside test_TimeSeries.py
-	py.test --cov --cov-report term-missing SimulatedTimeSeries.py test_SimulatedTimeSeries.py
-
-	4) write comments and doctests
-	Doctests should not cover corner cases or invalid input, they should just include max of 1 or 2 tests that 
-	explain how this function works 
-	py.test --doctest-modules  --cov --cov-report term-missing SimulatedTimeSeries.py test_SimulatedTimeSeries.py
-	'''
-
-
-
-	#gen = produce()	# curr_index = 0
-	#gen.next() # 0
-	#gen.next() # 5
-	#gen = produce() # 0
-
-	'''
-	def produce(k=5):
-		curr_index = 0
-		gen.:
-			curr_index+=k
-			yield 
-	
-	def __iter__(self):
-		out=self.next()
-		if isinstance(out,tuple):
-				if len(out)>1:
-					#print "time is provided"
-					yield out[1]
-		elif isinstance(out,tuple):
-				if len(out)==1:
-					yield out[0]
-				else:
-					yield out
-	
-		def produce(self,chunk=5):
-			curr_index=0
-			data_list=[]
-			time=0
+			Produce will take the chunk=k and generator that was passed to the SimulatedTimeSeries object 
+			and then call next on generator k times, so it is like a generator of generators.
 			
-			for i in range(0,chunk):
-				curr_index+=chunk
-				out=self.next()
-				if isinstance(out, (tuple)):
-					if len(out)>1:
-						#print "time is provided"
-						data_list.append(out)
-				else:
-					data_list.append((time,out))
-					time+=1
+			Most importantly, independent of the input type it will package it into (time, value). If 
+			there is time provided it uses the provided time, otherwise generates an index everytime it is called.
+			Since there is no underlying storage for this type of data, there is no "memory" of time. everytime
+			new data is produced it is like a new list to be processed.
 
-			return data_list
-		
-	def make_time_and_values(m,stop=None):
-		for _ in count():
-			if stop and _ > stop:
-				break
-			yield (_+0.1,1.0e09 + normalvariate(0, m*random()))
+	2)__iter__(): Iterates over the provided generator one value at a time. But, since this is the default function
+			that will be called when iterating over the generator, it has to account for the three kinds of data 
+			input explained above. So, it must always package the data into a (time,value) tuple, independent
+			of the kind of input.
 
+	3) kind_of_input() : is a helper function created to handle the different kinds of input as explained above. 
+			It can account for three kinds of input (mentioned above). These are named "TimedTuple", "UnTimedTuple"
+			and "float" for convenience.
 
-	def make_data(m, stop=None):
-		time = range(0,1000)
-	    for _ in count():
-	        if stop and _ > stop:
-	            break
-	        yield 1.0e09 + normalvariate(0, m*random() ), time[i++]
+	4) __init__() : The constructor takes as input a generator function (which is assumed to generate) data that is
+			of one of the three types defined above.
 
-	'''	
+	5) iteritems(): The way iteritems is defined here is that it is different from __iter__. While __iter__ doesn't
+			care about the original structure of the data passed, and always packages into a (time,value) data, 
+			iteritems preserves the structure of the original generator passed, and just advances the generator
+			by one everytime it is called.
+
+	6) itervalues(): This function takes the generator and iterates over the values of the generator passed. As all generators
+			assume that values are provided, it gives a valid output for all three kinds of data
+	
+	7) itertimes() : This function takes the generator and iterates over the time, instead of values. Since the time is originally
+			provided only for one of the three kinds of inputs, it returns a valid output only for a TimedTuple,
+			and returns a None for the other two kinds of input if called. 
+
+	'''
+	
 	def __init__(self,gen):
 		#print("I'm constructing")
 		self.gen=gen
