@@ -52,14 +52,71 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 	'''
 	
 	def __init__(self,gen):
-		#print("I'm constructing")
+		"""
+		Initializes a SimulatedTimeSeries instance with the generator passed to it. It intitates the generator,
+		sets it equal to self.gen, thereby making it available to all other methods in the class. 
+
+		Further, it primes the generator by calling a next on it!
+
+		Parameters
+		----------
+		gen : As explained above as well, this class is designed to handle three different kinds of generator
+			  inputs - 
+			  a) Tuple like (time,value)
+			  b) Tuple like (time,)
+			  c) Just a float value without time 
+
+		Returns
+		-------
+		SimulatedTimeSeries
+			A Simulated time series object with generator as the parameter. 
+		
+		>>> def generator_with_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.1,_+0.5)
+					_+=1
+		>>> Obj_with_time=SimulatedTimeSeries(generator_with_time())
+		>>> print(Obj_with_time)
+		<SimulatedTimeSeries.SimulatedTimeSeries object at 0x101c8f518>
+		"""
+		
 		self.gen=gen
 		next(self.gen)
-		#print("I've constructed")
-		#print(next(self.gen))
-		#print(self.produce())
 
 	def kind_of_input(self,input):
+		'''
+		This is a helper function defined to handle the fact that different kinds of inputs can be given.
+
+		Parameters
+		----------
+		input : Can be of three kinds - 
+				a) a tuple of length 2
+				b) a tuple of length 1
+				c) a float value 
+		
+		Returns
+		-------
+		A string which can take three values, depending upon the kind of input.
+
+		If the provided input is a tuple of length 2, it returns "TimedTuple", i.e. it tells the subsequent
+		functions that the input data is of the form (time,value)
+
+		If the provided input is a tuple of length 1, it returns "UnTimedTuple", i.e. it tells the subsequent
+		functions that the input data is of the form (value,)
+
+		If the provided input is a float, it returns "float", i.e. it tells the subsequent
+		functions that the input data is of the form float values.
+
+
+		>>> k=2.3
+		>>> obj.kind_of_input(2.3)
+		"float"
+		>>> obj.kind_of_input((4,3))
+		"TimedTuple"		
+		>>> obj.kind_of_input((7,))
+		"UnTimedTuple"
+		'''
 		if isinstance(input, (tuple)):
 			if len(input)==2:
 				#print "time is provided"
@@ -70,6 +127,37 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 			return "float"
 
 	def produce(self,chunk=1):
+		"""
+		Moves the generator function by a size = the chunk variable. 
+
+		Accounts for the three different kinds of inputs that can be provided to it, and then packages
+		the result into a (time,value) tuple.
+
+		NOTE : Since this is a storage-less implementation as mentioned in the HW guidelines, it is important
+		to note that there is no pre existing index of values for time, or in other words, there is no memory
+		of things generated the last time the function was called. Thus, everytime a new chunk is generated, 
+		if there is no time already provided, the counter for the index (which also serves as the time if not provided)
+		restarts from scratch! It also makes sense given the applications mentioned in examples in guidelines.
+
+		Parameters
+		----------
+		chunk : Defines the number of moves the generator should be moved by. Produce can be thought of 
+		as a generator of generators, as it takes a generator and moves it by "chunk" units.
+
+		Returns
+		-------
+		A genertor object. 
+
+		In order to proceed it, we need to do a next() on it!
+		>>> def generator_with_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.1,_+0.5)
+					_+=1
+		>>> Obj_with_time=SimulatedTimeSeries(generator_with_time())
+		>>> print(next(Obj_with_time.produce(chunk=2)))
+		((0.1,0.5),(1.1,1.5))
+		"""
 		data_list=[]
 		firstout=next(self.gen)
 		typeout=self.kind_of_input(firstout)
@@ -91,6 +179,26 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 			yield data_list
 
 	def __iter__(self):
+		'''
+		Does the exact same thing as above, but just moves by one! So, returns a generator as well.
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		In order to proceed it, we need to do a next() on it!
+		>>> def generator_with_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.1,_+0.5)
+					_+=1
+		>>> obj1=SimulatedTimeSeries(generator_with_time())
+		>>> def test_iter_with_time():
+				for a in obj1:
+					print a 
+		(0.1, 0.5)
+		'''
 		firstout=next(self.gen)
 		typeout=self.kind_of_input(firstout)
 		if typeout=="TimedTuple":
@@ -101,9 +209,55 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 			yield (0,firstout)
 
 	def iteritems(self):
+		'''
+		Does the exact same thing as above, but doesn't package things as the iter does.
+		So, it preserves the structure of the input generator - if it doesn't have time, doensn't add
+		time to it. 
+
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		In order to proceed it, we need to do a next() on it!
+		>>> def generator_without_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.5)
+					_+=1
+		>>> obj2=SimulatedTimeSeries(generator_without_time())
+		>>> obj2.iteritems() 
+		0.5
+		'''
 		yield next(self.gen)
 
 	def itertimes(self):
+		'''
+		Again as above, doesn't package things as the iter does.
+		But, it doesn't preserve the structure of the input generator - it only returns the time, not value.
+		even if the input has time, it returns only the value.
+
+		IF the input doesn't have time, then it just returns a None.
+
+		As all datasets have time,
+
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		In order to proceed it, we need to do a next() on it!
+		>>> def generator_without_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.5)
+					_+=1
+		>>> obj2=SimulatedTimeSeries(generator_without_time())
+		>>> obj2.iteritems() 
+		None
+		'''
 		out=next(self.gen)
 		if self.kind_of_input(out)=="TimedTuple":
 			yield out[0]
@@ -111,6 +265,29 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 			yield None
 
 	def itervalues(self):
+		'''
+		Again as above, doesn't package things as the iter does.
+		But, it doesn't preserve the structure of the input generator - it only returns the value, not time.
+		Even if the input has time, it returns only the value.
+
+		As all datasets have time,
+
+		Parameters
+		----------
+		None
+
+		Returns
+		-------
+		In order to proceed it, we need to do a next() on it!
+		>>> def generator_with_time(stop=None):
+				_=0
+				while 1:
+					yield (_+0.1,_+0.5)
+					_+=1
+		>>> obj2=SimulatedTimeSeries(generator_with_time())
+		>>> obj2.iteritems() 
+		0.5
+		'''
 		out=next(self.gen)
 		if self.kind_of_input(out)=="TimedTuple":
 			yield out[1]
