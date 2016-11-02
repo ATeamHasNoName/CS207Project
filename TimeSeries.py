@@ -835,5 +835,11 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		False
 		"""
 		return value in self.values()
+
+	def mean(self):
+		return np.mean(self.values())
+
+	def std(self):
+		return np.std(self.values())
 	
     

@@ -412,4 +412,14 @@ class TimeSeriesTest(unittest.TestCase):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
 
+	''' Mean STD test '''
+
+	def test_mean(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		self.assertEqual(a.mean(), 2)
+
+	def test_std(self):
+		a = TimeSeries([1, 2, 3],[0, 5, 10])
+		self.assertEqual(a.std(), 0.81649658092772603)
+
 
