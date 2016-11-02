@@ -97,9 +97,8 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		else:
 			return list(zip(self.timesseq, vals))
 
-
 	@property
-	def lazy(self):
+	def lazy(self, function=None, *args):
 		"""
 		>>> x = TimeSeries([1,2,3,4],[1,4,9,16])
 		>>> print(x)
@@ -114,10 +113,13 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		Length: 4
 		First (oldest): 1, Last (newest): 4
 		"""
-		def identity(args):
-			return args
-		return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)	
-	
+		def identity(arg):
+			return arg
+
+		if function==None:
+			return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)		
+		return LazyOperation(function,*args)	
+
 	@property
 	def timesseq(self):
 		"""
