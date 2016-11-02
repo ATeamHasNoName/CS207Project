@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-#from TimeSeries import TimeSeries
-
-class LazyOperation():
-=======
 class LazyOperation():
     """
     LazyOperation function to lazily work with TimeSeries.
@@ -15,22 +10,9 @@ class LazyOperation():
     -------
     A function of *args and **kwargs
 
-    >>> x = TimeSeries([1,2,3,4],[1,4,9,16])
-    >>> print(x)
-    >>> TimeSeries
-    >>> Length: 4
-    >>> First (oldest): 1, Last (newest): 4
-    >>> y = x.lazy
-    >>> print(y)
-    >>> LazyOperation : Function = <class '__main__.TimeSeries'>, Args = ([1, 2, 3, 4], [1, 4, 9, 16]), Kwargs = {}
-    >>> print(y.eval())
-    >>> TimeSeries
-    >>> Length: 4
-    >>> First (oldest): 1, Last (newest): 4
     """
 
 
->>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470
     def __init__(self, function, *args, **kwargs):
         self._function = function
         self._args = args
@@ -53,10 +35,6 @@ class LazyOperation():
         #return self._function
         return self._function(*new_args, **new_kwargs)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4bf8aaa73d857c7fc988e5a70dc78cfcfd667470
     def __len__(self):
        return len(self._args) 
 
@@ -73,20 +51,3 @@ def lazy_add(a,b):
 @lazy
 def lazy_mul(a,b):
 	return a*b
-
-
-def main():
-    thunk = check_length(TimeSeries(range(0,4),range(1,5)), TimeSeries(range(1,5),range(2,6)))
-    print(thunk.eval())
-
-
-    #x = TimeSeries([1,2,3,4],[1,4,9,16])
-    #print(x) 
-    #print(x.lazy.eval())
-
-    #thunk = lazy_mul (1,2)
-    #print(thunk.eval())
-    #print(isinstance( lazy_add(1,2), LazyOperation ) == True)
-
-if __name__ == "__main__":
-	main()

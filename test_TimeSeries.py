@@ -386,10 +386,6 @@ class TimeSeriesTest(unittest.TestCase):
 		c = b.lazy
 		self.assertFalse(a == c.eval())
 
-	def test_lazyAdd(self):
-		thunk = lazy_mul(1,2)
-		self.assertTrue(thunk.eval() == 2)
-
 	def test_lazy_printing(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		b = a.lazy
@@ -404,3 +400,5 @@ class TimeSeriesTest(unittest.TestCase):
 	def test_lazy_instance(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
+
+
