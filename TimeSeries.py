@@ -98,14 +98,18 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 			return list(zip(self.timesseq, vals))
 
 	@property
-	def lazy(self, function=None, *args):
+	def lazySelf(self):
+		"""
+		Lazily stores the TimeSeries class and returns it when eval() in LazyOperation is called.
+		"""
+
 		"""
 		>>> x = TimeSeries([1,2,3,4],[1,4,9,16])
 		>>> print(x)
 		TimeSeries
 		Length: 4
 		First (oldest): 1, Last (newest): 4
-		>>> y = x.lazy
+		>>> y = x.lazySelf
 		>>> print(y)
 		LazyOperation : Function = <class 'TimeSeries.TimeSeries'>, Args = ([1, 2, 3, 4], [1, 4, 9, 16]), Kwargs = {}
 		>>> print(y.eval())
@@ -116,8 +120,23 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		def identity(arg):
 			return arg
 
-		if function==None:
-			return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)		
+		return LazyOperation(identity(TimeSeries), self.__valuesseq, self.__timesseq)		
+
+	def lazyFunc(self, function, *args):
+		"""
+		Lazily stores function of arguments and returns the results when eval() in LazyOperation is called.
+		"""
+
+		"""
+		>>> a = TimeSeries([1, 2, 3],[0, 5, 10])
+		>>> aa = TimeSeries([1, 2, 3],[0, 5, 10])
+		>>> func = TimeSeries.check_length
+		>>> args = (a,aa)
+		>>> b = TimeSeries.lazyFunc(TimeSeries,func,*args)
+		>>> print(b.eval())
+		True
+
+		"""
 		return LazyOperation(function,*args)	
 
 	@property
@@ -841,5 +860,14 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 
 	def std(self):
 		return np.std(self.values())
-	
-    
+
+	def check_length(self, t1, t2):
+		#print("Inside check_length")
+		#print("Self = ")
+		#print(self)
+		#print("t1 = ")
+		#print(t1)
+		#print("t2 = ")
+		#print(t2)
+		return len(t1) == len(t2)
+	    

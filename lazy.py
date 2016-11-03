@@ -1,3 +1,4 @@
+import inspect
 class LazyOperation():
 	"""
 	LazyOperation function to lazily work with TimeSeries.
@@ -25,13 +26,9 @@ class LazyOperation():
 		# Recursively eval() lazy args
 		new_args = [a.eval() if isinstance(a,LazyOperation) else a for a in self._args]
 		new_kwargs = {k:v.eval() if isinstance(v,LazyOperation) else v for k,v in self._kwargs}
-		#print("Self = ")
-		#print(self)
-		#print("Function = ")
-		#print(self._function)
-		#print("args = ")
-		#print(self._args)
-		return self._function(*new_args, **new_kwargs)
+		if inspect.isclass(self._function):
+			return self._function(*new_args, **new_kwargs)
+		return self._function(self,*new_args, **new_kwargs)
 
 	def __len__(self):
 		return len(self._args) 

@@ -377,40 +377,55 @@ class TimeSeriesTest(unittest.TestCase):
 	''' Lazy class tests'''
 	def test_lazy_add(self):
 		self.assertTrue(isinstance( lazy_add(1,2), LazyOperation ) == True)
-		
 
 	def test_lazy_mul(self):
 		self.assertTrue(isinstance( lazy_mul(1,2), LazyOperation ) == True)
 		
 
+	''' Lazy function tests '''	
+	def test_lazyFunc_checkLength_equal(self):
+		t1 = TimeSeries([1, 2, 3],[0, 5, 10])
+		t2 = TimeSeries([1, 2, 3],[0, 5, 10])
+		func = TimeSeries.check_length
+		args = (t1,t2)
+		b = TimeSeries.lazyFunc(self,func,*args)
+		self.assertTrue(b.eval() == True)
 
-	''' Lazy usage tests '''
+	def test_lazyFunc_checkLength_notequal(self):
+		t1 = TimeSeries([1, 2, 3],[0, 5, 10])
+		t2 = TimeSeries([1, 2, 3, 4],[0, 5, 10, 15])
+		func = TimeSeries.check_length
+		args = (t1,t2)
+		b = TimeSeries.lazyFunc(self,func,*args)
+		self.assertTrue(b.eval() == False)
 
+	''' Lazy self tests '''
 	def test_lazy_equal(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
-		b = a.lazy
-		self.assertTrue(a == b.eval())
-
+		b = TimeSeries([1, 2, 3],[0, 5, 10])
+		c = b.lazySelf
+		self.assertTrue(a == c.eval())
+		
 	def test_lazy_not_equal(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
 		b = TimeSeries([1, 2, 4],[0, 5, 10])
-		c = b.lazy
+		c = b.lazySelf
 		self.assertFalse(a == c.eval())
 
 	def test_lazy_printing(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
-		b = a.lazy
+		b = a.lazySelf
 		self.assertFalse(str(a) == str(b))
 
 	def test_lazy_len(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
-		b = a.lazy
+		b = a.lazySelf
 		length = len(b)
 		self.assertTrue(length == 2)
-
+	
 	def test_lazy_instance(self):
 		a = TimeSeries([1, 2, 3],[0, 5, 10])
-		self.assertTrue(isinstance(a.lazy.eval(), TimeSeries)==True)
+		self.assertTrue(isinstance(a.lazySelf.eval(), TimeSeries)==True)
 
 	''' Mean STD test '''
 
