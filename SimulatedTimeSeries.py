@@ -1,6 +1,7 @@
 from random import normalvariate, random
 from itertools import count
 from StreamTimeSeriesInterface import StreamTimeSeriesInterface
+import math
 class SimulatedTimeSeries(StreamTimeSeriesInterface):
 	'''
 	WORKFLOW - 
@@ -50,10 +51,17 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 			and returns a None for the other two kinds of input if called. 
 
 	'''
+
+
+	def generator_with_time(stop=None):
+		_=0
+		while 1:
+			yield (_+0.1,_+0.5)
+			_+=1
 	
 	def __init__(self,gen):
 		"""
-		Initializes a SimulatedTimeSeries instance with the generator passed to it. It intitates the generator,
+		Initializes a SimulatedTimeSeries instance with the generator passed to it. It initiates the generator,
 		sets it equal to self.gen, thereby making it available to all other methods in the class. 
 
 		Further, it primes the generator by calling a next on it!
@@ -69,19 +77,17 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		Returns
 		-------
 		SimulatedTimeSeries
-			A Simulated time series object with generator as the parameter. 
-		
-		>>> def generator_with_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.1,_+0.5)
-					_+=1
-		>>> Obj_with_time=SimulatedTimeSeries(generator_with_time())
-		>>> print(Obj_with_time)
-		<SimulatedTimeSeries.SimulatedTimeSeries object at 0x101c8f518>
+		A Simulated time series object with generator as the parameter. 
 		"""
 		
 		self.gen=gen
+
+		# Used for EC: Iterative mean calculation
+		self.n = 0
+		self.mu = 0
+		self.s1 = 0
+		self.stddev = 0
+
 		next(self.gen)
 
 	def kind_of_input(self,input):
@@ -108,14 +114,14 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		If the provided input is a float, it returns "float", i.e. it tells the subsequent
 		functions that the input data is of the form float values.
 
-
+		>>> obj=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
 		>>> k=2.3
 		>>> obj.kind_of_input(2.3)
-		"float"
+		'float'
 		>>> obj.kind_of_input((4,3))
-		"TimedTuple"		
+		'TimedTuple'
 		>>> obj.kind_of_input((7,))
-		"UnTimedTuple"
+		'UnTimedTuple'
 		'''
 		if isinstance(input, (tuple)):
 			if len(input)==2:
@@ -126,6 +132,56 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		else:
 			return "float"
 
+	def mean(self):
+		return self.online_mean()
+
+	def std(self):
+		return self.online_std()[0]
+
+	def online_mean(self, v=None):
+		"""
+		Calculates mean iteratively based on the generator. Takes in next value v, and calculates next mean. 
+		Note that this does not mutate the internal state.
+
+		Parameters
+		----------
+		v: New value coming in, or None
+
+		Returns
+		-------
+		A floating point value of the new mean after incorporating v. If no v is provided, just return current mean.
+		"""
+		if v == None:
+			return self.mu
+		delta = v - self.mu
+		return self.mu + delta/self.n
+
+	def online_std(self, v=None):
+		"""
+		Calculates standard deviation iteratively based on the generator. Takes in next value v, and calculates next std.
+		Note that this does not mutate the internal state.
+
+		Parameters
+		----------
+		v: New value coming in, or None
+
+		Returns
+		-------
+		A floating point value of the new std after incorporating v. If no v is provided, just return current std.
+		Also returns the S value for use in produce() to set the instance variable.
+		"""
+		if v == None:
+			return self.stddev, None
+		mu2 = self.mu + (v - self.mu)/self.n
+		std_ = 0
+		s2 = 0
+		if self.n > 1:
+			s2 = self.s1 + (v - self.mu)*(v - mu2)
+			std_ = math.sqrt(s2/(self.n-1))
+		# Returns s2 too, because that has to be stored
+		return std_, s2
+
+	# NOTE: Produce returns 3 values! Not one!
 	def produce(self,chunk=1):
 		"""
 		Moves the generator function by a size = the chunk variable. 
@@ -139,6 +195,8 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		if there is no time already provided, the counter for the index (which also serves as the time if not provided)
 		restarts from scratch! It also makes sense given the applications mentioned in examples in guidelines.
 
+		EC: Produce returns three values: chunk values, chunk means and chunk stds
+
 		Parameters
 		----------
 		chunk : Defines the number of moves the generator should be moved by. Produce can be thought of 
@@ -146,41 +204,46 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 
 		Returns
 		-------
-		A genertor object. 
+		A generator object. 
 
 		In order to proceed it, we need to do a next() on it!
-		>>> def generator_with_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.1,_+0.5)
-					_+=1
-		>>> Obj_with_time=SimulatedTimeSeries(generator_with_time())
+		>>> Obj_with_time=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
 		>>> print(next(Obj_with_time.produce(chunk=2)))
-		((0.1,0.5),(1.1,1.5))
+		([(2.1, 2.5), (3.1, 3.5)], [2.5, 3.0], [0, 0.7071067811865476])
 		"""
 		data_list=[]
+		mean_list=[]
+		std_list =[]
 		firstout=next(self.gen)
 		typeout=self.kind_of_input(firstout)
-		if typeout=="TimedTuple":
-			for i in range(0,chunk):
-				data_list.append(next(self.gen))
-			yield data_list
-		if typeout=="UnTimedTuple":
-			#print("UnTimedTuple")
-			for i in range(0,chunk):
-				tupledata=(i,next(self.gen)[0])
-				data_list.append(tupledata)
-			yield data_list
-		if typeout=="float":
-			#print("float")
-			for i in range(0,chunk):
-				tupledata=(i,next(self.gen))
-				data_list.append(tupledata)
-			yield data_list
+
+		for i in range(0, chunk):
+			val = None
+			if typeout=='TimedTuple':
+				val = next(self.gen)
+			elif typeout=='UnTimedTuple':
+				val = (i,next(self.gen)[0])
+			else: 
+				val = (i,next(self.gen))
+			data_list.append(val)
+			
+			# Update internal variables to prepare for mean, std functions
+			self.n += 1
+			mu_new = self.online_mean(val[1])
+			std_new, s1_new = self.online_std(val[1])
+			self.mu = mu_new
+			self.stddev = std_new
+			self.s1 = s1_new
+			mean_list.append(self.mu)
+			std_list.append(self.stddev)
+
+		yield data_list, mean_list, std_list
 
 	def __iter__(self):
 		'''
-		Does the exact same thing as above, but just moves by one! So, returns a generator as well.
+		Does the exact same thing as above, but just moves by one! So, returns a generator as well. Note that this 
+		iterates through values.
+
 		Parameters
 		----------
 		None
@@ -188,16 +251,10 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		Returns
 		-------
 		In order to proceed it, we need to do a next() on it!
-		>>> def generator_with_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.1,_+0.5)
-					_+=1
-		>>> obj1=SimulatedTimeSeries(generator_with_time())
-		>>> def test_iter_with_time():
-				for a in obj1:
-					print a 
-		(0.1, 0.5)
+		>>> obj1=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
+		>>> for a in obj1:
+		... 	print(a)
+		(1.1, 1.5)
 		'''
 		firstout=next(self.gen)
 		typeout=self.kind_of_input(firstout)
@@ -221,14 +278,9 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		Returns
 		-------
 		In order to proceed it, we need to do a next() on it!
-		>>> def generator_without_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.5)
-					_+=1
-		>>> obj2=SimulatedTimeSeries(generator_without_time())
-		>>> obj2.iteritems() 
-		0.5
+		>>> obj2=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
+		>>> next(obj2.iteritems())
+		(1.1, 1.5)
 		'''
 		yield next(self.gen)
 
@@ -249,14 +301,9 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		Returns
 		-------
 		In order to proceed it, we need to do a next() on it!
-		>>> def generator_without_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.5)
-					_+=1
-		>>> obj2=SimulatedTimeSeries(generator_without_time())
-		>>> obj2.iteritems() 
-		None
+		>>> obj2=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
+		>>> next(obj2.itertimes())
+		1.1
 		'''
 		out=next(self.gen)
 		if self.kind_of_input(out)=="TimedTuple":
@@ -279,14 +326,9 @@ class SimulatedTimeSeries(StreamTimeSeriesInterface):
 		Returns
 		-------
 		In order to proceed it, we need to do a next() on it!
-		>>> def generator_with_time(stop=None):
-				_=0
-				while 1:
-					yield (_+0.1,_+0.5)
-					_+=1
-		>>> obj2=SimulatedTimeSeries(generator_with_time())
-		>>> obj2.iteritems() 
-		0.5
+		>>> obj2=SimulatedTimeSeries(SimulatedTimeSeries.generator_with_time())
+		>>> next(obj2.itervalues())
+		1.5
 		'''
 		out=next(self.gen)
 		if self.kind_of_input(out)=="TimedTuple":

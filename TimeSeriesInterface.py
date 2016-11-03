@@ -30,3 +30,17 @@ class TimeSeriesInterface(abc.ABC):
         iterate over the (index, value) tuple of the TimeSeries, where index is the index of the value in the 
         underlying data structure.
         """
+
+    @abc.abstractmethod
+    def mean(self):
+        """
+        EC: Returns the mean of the current values internally stored. For the SimulatedTimeSeries, it is 
+        an iteratively calculated mean.
+        """
+
+    @abc.abstractmethod
+    def std(self):
+        """
+        EC: Returns the std of the current values internally stored. For the SimulatedTimeSeries, it is 
+        an iteratively calculated std.
+        """
