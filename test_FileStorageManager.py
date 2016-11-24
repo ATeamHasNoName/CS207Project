@@ -1,6 +1,7 @@
 import unittest
 from TimeSeries import TimeSeries
 from ArrayTimeSeries import ArrayTimeSeries
+from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from FileStorageManager import FileStorageManager
 import sys
 import os
@@ -33,8 +34,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		key = "1"
 		self.fsm1.store(key, self.ts)
 		ts_retrieved = self.fsm1.get(key)
-		# Retrieved time series is the right class
-		self.assertTrue(type(ts_retrieved) is TimeSeries)
+		self.assertTrue(isinstance(ts_retrieved, SizedContainerTimeSeriesInterface))
 
 	def test_intKeyAndGet(self):
 		key = 123
@@ -68,14 +68,26 @@ class FileStorageManagerTest(unittest.TestCase):
 		key = "191919"
 		self.assertEqual(self.fsm1.get(key), None)
 
-	
+	def test_timeSeriesSize(self):
+		key = "1"
+		self.fsm1.store(key, self.ts)
+		self.assertEqual( self.fsm1.size(key), 5)
 
-# t2 = [2]
-# v2 = [3]
-# z2 = TimeSeries(values=v2, times=t2)
+	def test_noTimeSize(self):
+		key = "1"
+		self.fsm1.store(key, self.ts_notime)
+		self.assertEqual( self.fsm1.size(key), 3)
 
-# db1 = WrappedDB("exampleDB.dbdb")
-# db1.storeKeyAndTimeSeries("1", z1)
-# db1.storeKeyAndTimeSeries("2", z2)
-# print(db1.getTimeSeries("1"))
-# print(db1.getTimeSeries("2"))
+	def test_singleSize(self):
+		key = "1"
+		self.fsm1.store(key, self.ts_single)
+		self.assertEqual( self.fsm1.size(key), 1)
+
+	def test_atsSize(self):
+		key = "1"
+		self.fsm1.store(key, self.ats)
+		self.assertEqual( self.fsm1.size(key), 3)
+
+	def test_getNonExistentSize(self):
+		key = 1919
+		self.assertEqual(self.fsm1.size(key), -1)
