@@ -1,6 +1,7 @@
 from DB import DB
 import sys
 sys.path.append('../')
+from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from TimeSeries import TimeSeries
 
 # READ: Setup for DB
@@ -12,38 +13,38 @@ class WrappedDB:
 	def __init__(self, filename):
 		self.db = DB.connect(filename)
 
-	# Stores a (key, value) pair in the DB
-	# Note that value must be a primitive data type
-	def storeKeyAndValue(self, key, value):
-		self.db.set(key, value)
-		self.db.commit()
-
-	# Gets a value by key from the DB
-	def getValue(self, key):
-		return self.db.get(key)
-
 	# Stores a time series by key in the DB
 	def storeKeyAndTimeSeries(self, key, timeSeries):
-		if type(timeSeries) is not TimeSeries:
+		if not isinstance(timeSeries, SizedContainerTimeSeriesInterface):
 			raise ValueError('Input class is not time series')
-		self.db.set(key, self._encode(timeSeries))
-		self._storeKeyAndTimeSeriesSize(key, timeSeries)
+		self.db.set(str(key), self._encode(timeSeries))
+		self._storeKeyAndTimeSeriesSize(str(key), timeSeries)
 		self.db.commit()
 
 	# Also stores time series' size in the DB
 	def _storeKeyAndTimeSeriesSize(self, key, timeSeries):
-		if type(timeSeries) is not TimeSeries:
+		if not isinstance(timeSeries, SizedContainerTimeSeriesInterface):
 			raise ValueError('Input class is not time series')
 		# Note that it is not committed here, and must be committed in the caller function
-		self.db.set(key + ':size', len(timeSeries))
+		self.db.set(str(key) + ':size', str(len(timeSeries)))
 
 	# Get the size of the time series' from its key
+	# Returns -1 when time series key does not exist
 	def getTimeSeriesSize(self, key):
-		return int(self.db.get(key + ':size'))
+		try:
+			size = self.db.get(str(key) + ':size')
+		except KeyError:
+			return -1
+		return int(self.db.get(str(key) + ':size'))
 
 	# Gets a time series object by key from the DB
+	# Returns None when time series key does not exist
 	def getTimeSeries(self, key):
-		return self._decode(self.db.get(key))
+		try:
+			timeSeriesString = self.db.get(str(key))
+		except KeyError:
+			return None
+		return self._decode(self.db.get(str(key)))
 
 	# Takes in time series object and transforms it into a string
 	def _encode(self, timeSeries):
