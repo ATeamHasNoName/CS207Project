@@ -12,14 +12,34 @@ class WrappedDB:
 
 	def __init__(self, filename):
 		self.db = DB.connect(filename)
+		
+		# Stores the highest key in the database:
+		self.highestKey = 0
+
 
 	# Stores a time series by key in the DB
 	def storeKeyAndTimeSeries(self, key, timeSeries):
 		if not isinstance(timeSeries, SizedContainerTimeSeriesInterface):
 			raise ValueError('Input class is not time series')
+
+		# If no key is set then the key is automatically set one number above the highest
+		# current key in the database:
+		if (key == None):
+			self.highestKey += 1
+			key = self.highestKey
+
+		elif (key > self.highestKey):
+			self.highestKey = key
+		else:
+			if (self.getTimeSeriesSize(key) != -1):
+				# Key is in database. Use highestKey + 1
+				self.highestKey += 1
+				key = self.higestKey
+
 		self.db.set(str(key), self._encode(timeSeries))
 		self._storeKeyAndTimeSeriesSize(str(key), timeSeries)
 		self.db.commit()
+
 
 	# Also stores time series' size in the DB
 	def _storeKeyAndTimeSeriesSize(self, key, timeSeries):
