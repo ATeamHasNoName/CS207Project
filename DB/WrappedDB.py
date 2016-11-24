@@ -24,10 +24,24 @@ class WrappedDB:
 
 	# Stores a time series by key in the DB
 	def storeKeyAndTimeSeries(self, key, timeSeries):
+		if type(timeSeries) is not TimeSeries:
+			raise ValueError('Input class is not time series')
 		self.db.set(key, self._encode(timeSeries))
+		self._storeKeyAndTimeSeriesSize(key, timeSeries)
 		self.db.commit()
 
-	# Gets a time series by key from the DB
+	# Also stores time series' size in the DB
+	def _storeKeyAndTimeSeriesSize(self, key, timeSeries):
+		if type(timeSeries) is not TimeSeries:
+			raise ValueError('Input class is not time series')
+		# Note that it is not committed here, and must be committed in the caller function
+		self.db.set(key + ':size', len(timeSeries))
+
+	# Get the size of the time series' from its key
+	def getTimeSeriesSize(self, key):
+		return int(self.db.get(key + ':size'))
+
+	# Gets a time series object by key from the DB
 	def getTimeSeries(self, key):
 		return self._decode(self.db.get(key))
 

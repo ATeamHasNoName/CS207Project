@@ -1,7 +1,7 @@
 import numpy as np
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
-class SMTimeSeries(SizedContainerTimeSeriesInterface) {
+class SMTimeSeries(SizedContainerTimeSeriesInterface):
 	"""
 	Storage Manager class that stores instances of Time Series.
 	"""
@@ -36,7 +36,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface) {
 
 		>>> t = [1.5, 2, 2.5, 3, 10.5]
 		>>> v = [1, 3, 0, 1.5, 1]
-		>>> z = TimeSeries(v, t)
+		>>> z = SMTimeSeries(v, t)
 		>>> z._hasOnlyNumbers(t)
 		True
 		"""
@@ -46,6 +46,3 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface) {
 			except ValueError:
 				return False
 		return True
-
-
-}

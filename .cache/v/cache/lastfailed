@@ -1,1 +1,3 @@
-{}
+{
+  "test_FileStorageManager.py::FileStorageManagerTest::test_storeAndGetBasic": true
+}
