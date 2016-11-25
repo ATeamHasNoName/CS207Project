@@ -9,7 +9,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 	"""
 	Storage Manager class that stores instances of Time Series.
 	"""
-
+	
 	def __init__(self, values, times, key = None):
 		"""
 		Initializes a Storage Manager Time Series classwith value and times lists. Accepts an optional id which stores the Time Series into the Storage Manager. 
@@ -31,8 +31,6 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 			raise KeyError
 		else:
 			return self.DB.getTimeSeries(key)
-
-
 
 #	def repOK(self, times, values, id):
 #		assert self._hasOnlyNumbers(times), "Times should only include numbers"

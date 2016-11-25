@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "DB/portalocker/tests/test_combined.py::test_combined": true,
   "test_FileStorageManager.py::FileStorageManagerTest::test_RetrievedObjectIsTimeSeriesClass": true,
   "test_FileStorageManager.py::FileStorageManagerTest::test_atsSize": true,
@@ -7,4 +8,18 @@
   "test_FileStorageManager.py::FileStorageManagerTest::test_singleSize": true,
   "test_FileStorageManager.py::FileStorageManagerTest::test_timeSeriesSize": true,
   "test_SMTimeSeries.py::FileStorageManagerTest::test_init_SMTimeSeries": true
+=======
+  "FileStorageManager.py::FileStorageManager.FileStorageManager.get": true,
+  "FileStorageManager.py::FileStorageManager.FileStorageManager.store": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_RetrievedObjectIsTimeSeriesClass": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_atsSize": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_getNonExistentTimeSeries": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_intKeyAndGet": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_intKeyAndSetOver": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_negativeKeyAndArrayTimeSeries": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_noTime": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_noTimeSize": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_singleSize": true,
+  "test_FileStorageManager.py::FileStorageManagerTest::test_timeSeriesSize": true
+>>>>>>> Stashed changes
 }
