@@ -9,7 +9,7 @@ from TimeSeries import TimeSeries
 
 # Test cases for the WrappedDB class
 
-# NOTE: Coverage on WrappedDB is not 100% because lines 36-40 where we re-randomize the keys 
+# NOTE: Coverage on WrappedDB is not 100% because lines 40-44 where we re-randomize the keys 
 # to ensure we get a unique key is impossible to test. However we know the logic is correct by 
 # testing the random key generator function before that.
 class WrappedDBTest(unittest.TestCase):
@@ -120,7 +120,7 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(3)
 		self.wdb.getTimeSeries(3)
 		self.wdb.getTimeSeries(2)
-		self.assertEquals(list(self.wdb.cache.keys()), ['3', '2'])
+		self.assertEquals(sorted(list(self.wdb.cache.keys())), ['2', '3'])
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 3, '3': 3})
 
 	def test_noCache(self):
@@ -135,7 +135,22 @@ class WrappedDBTest(unittest.TestCase):
 		self.assertEquals(self.wdb_noCache.cache, {})
 
 	# Test encode and decode
-	
-	
 
+	def test_encode(self):
+		timeSeriesString = self.wdb._encode(timeSeries=self.ts)
+		self.assertEqual(timeSeriesString, '(1.5,1);(2,3);(2.5,0);(3,1.5);(10.5,1)')
 
+	def test_decode(self):
+		timeSeriesString = '(1.5,1);(2,3);(2.5,0);(3,1.5);(10.5,1)'
+		timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
+		self.assertEqual(timeSeries, self.ts)
+
+	def test_decode_malformed1(self):
+		timeSeriesString = '(1.51);(2,3);(2.5,0);(3,1.5);(10.5,1)'
+		with self.assertRaises(ValueError):
+			timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
+
+	def test_decode_malformed2(self):
+		timeSeriesString = '(1.5,1;(2,3);(2.5,0);(3,1.5);(10.5,1)'
+		with self.assertRaises(ValueError):
+			timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
