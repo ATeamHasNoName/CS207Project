@@ -29,7 +29,7 @@ class FileStorageManager(StorageManagerInterface):
 		<class 'FileStorageManager.FileStorageManager'>
 		>>> os.remove('testfsm.dbdb')
 		"""
-		self.db = WrappedDB(filename)
+		self.db = WrappedDB(filename=filename)
 
 	def store(self, key, timeSeries):
 		"""
@@ -57,7 +57,7 @@ class FileStorageManager(StorageManagerInterface):
 		5
 		>>> os.remove('testfsm.dbdb')
 		"""
-		self.db.storeKeyAndTimeSeries(key, timeSeries)
+		self.db.storeKeyAndTimeSeries(timeSeries=timeSeries, key=key)
 
 	def size(self, key):
 		"""
@@ -81,7 +81,7 @@ class FileStorageManager(StorageManagerInterface):
 		-1
 		>>> os.remove('testfsm.dbdb')
 		"""
-		return self.db.getTimeSeriesSize(key)
+		return self.db.getTimeSeriesSize(key=key)
 
 	def get(self, key):
 		"""
@@ -111,5 +111,4 @@ class FileStorageManager(StorageManagerInterface):
 		2.0
 		>>> os.remove('testfsm.dbdb')
 		"""
-		return self.db.getTimeSeries(key)
-		
+		return self.db.getTimeSeries(key=key)
