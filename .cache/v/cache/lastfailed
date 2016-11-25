@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
   "DB/portalocker/tests/test_combined.py::test_combined": true,
   "test_FileStorageManager.py::FileStorageManagerTest::test_RetrievedObjectIsTimeSeriesClass": true,
@@ -22,4 +23,7 @@
   "test_FileStorageManager.py::FileStorageManagerTest::test_singleSize": true,
   "test_FileStorageManager.py::FileStorageManagerTest::test_timeSeriesSize": true
 >>>>>>> Stashed changes
+=======
+  "DB/portalocker/tests/test_combined.py::test_combined": true
+>>>>>>> a6b535a423d477615c6548e918c88149d9be7c94
 }

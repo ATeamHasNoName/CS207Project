@@ -13,52 +13,73 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 	def __init__(self, values, times, key = None):
 		"""
 		Initializes a Storage Manager Time Series classwith value and times lists. Accepts an optional id which stores the Time Series into the Storage Manager. 
+		
+		Parameters
+		----------
+		times: the times of a timeseries 
+		values: the values of a timeseries
+		key: a key to store the TimeSeries in the database
+
+		Returns
+		-------
+		None
+	
+		>>> smts = SMTimeSeries[1.5, 2, 2.5, 3, 10.5], [1,3,0,1.5,19], "7")
+		>>> type(smts)
+		<class 'FileStorageManager.FileStorageManager'>
 		"""
-		self.key = key
+
 		self.DB = WrappedDB("SM_DB.dbdb")
-		self.DB.storeKeyAndTimeSeries(key,self, TimeSeries(values, times))
- 
+		self.timeSeries = TimeSeries(values, times)
+		self.key = self.DB.storeKeyAndTimeSeries(self.timeSeries, key)
 
 	def from_db(self, key):
 		"""
 		Looks up a Time Series with identifier key and returns it.
 		"""
+
+		if (key == None):
+			print("Key is not in Database\n")
+			return KeyError
+
+		self.key = key
 		self.DB = WrappedDB("SM_DB.dbdb")
-		
-		# Check if SMTimeSeries is in database:
-		if (self.DB.getTimeSeriesSize(key) == -1):
-			print('SMTimeSeries with key = {0:%i} is not in Database.'.format(key))
-			raise KeyError
-		else:
-			return self.DB.getTimeSeries(key)
+	
+		return self.DB.getTimeSeries(self.key)
 
-#	def repOK(self, times, values, id):
-#		assert self._hasOnlyNumbers(times), "Times should only include numbers"
-#		assert self._hasOnlyNumbers(values), "Values should only include numbers"	
-#		assert len(times) == len(values), "Length of times and values must be the same"
-#		assert len(times) == len(set(times)), "Times cannot be duplicated, i.e. there can only be one unique value for each time"
+	# Required functions according to the SizedContainerTimeSeriesInterface:
+	def __getitem__(self, item):
+		return self.timeSeries.getitem(item)
 
-	def _hasOnlyNumbers(self, arr):
-		"""
-		Private function to test if the input array consists of only numbers
+	def __iter__(self):
+		return self.timeSeries.iter()
 
-		Parameters
-		----------
-		arr: A sequences of any value type
+	def __len__(self):
+		return self.timeSeries.len()
 
-		Returns
-		-------
-		Boolen value if all elements in the array are numeric
+	def __setitem__(self, time, value):
+		return self.timeSeries.setitem(time, value)
 
-		>>> t = [1.5, 2, 2.5, 3, 10.5]
-		>>> v = [1, 3, 0, 1.5, 1]
-		>>> z = SMTimeSeries(v, t)
-		>>> z._hasOnlyNumbers(t)
-		True
-		"""
-		for i in arr:
-			try:
-				int(i)
-			except ValueError:
-				return False
-		return True
+	def items(self):
+		return self.timeSeries.items()
+
+	def iteritems(self):
+		return self.timeSeries.iteritems()
+
+	def itertimes(self):
+		return self.timeSeries.itertimes()
+
+	def itervalues(self):
+		return self.timeSeries.itervalues()
+
+	def mean(self):
+		return self.timeSeries.mean()
+
+	def std(self):
+		return self.timeSeries.std()
+
+	def times(self):
+		return self.timeSeries.times()
+
+	def values(self):
+		return self.timeSeries.values()

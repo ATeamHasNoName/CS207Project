@@ -32,34 +32,34 @@ class FileStorageManagerTest(unittest.TestCase):
 	
 	def test_RetrievedObjectIsTimeSeriesClass(self):
 		key = "1"
-		self.fsm1.store(key, self.ts)
+		self.fsm1.store(self.ts, key)
 		ts_retrieved = self.fsm1.get(key)
 		self.assertTrue(isinstance(ts_retrieved, SizedContainerTimeSeriesInterface))
 
 	def test_intKeyAndGet(self):
 		key = 123
-		self.fsm1.store(key, self.ts)
+		self.fsm1.store(self.ts, key)
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 1)
 
 	def test_intKeyAndSetOver(self):
 		key = 123
-		self.fsm1.store(key, self.ts_single)
+		self.fsm1.store(self.ts_single, key)
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], -2)
 
 	def test_noTime(self):
 		key = "5"
-		self.fsm1.store(key, self.ts_notime)
+		self.fsm1.store(self.ts_notime, key)
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 2)
 
 	def test_negativeKeyAndArrayTimeSeries(self):
 		key = -3
-		self.fsm1.store(key, self.ats)
+		self.fsm1.store(self.ats, key)
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 1)
@@ -70,22 +70,22 @@ class FileStorageManagerTest(unittest.TestCase):
 
 	def test_timeSeriesSize(self):
 		key = "1"
-		self.fsm1.store(key, self.ts)
+		self.fsm1.store(self.ts, key)
 		self.assertEqual( self.fsm1.size(key), 5)
 
 	def test_noTimeSize(self):
 		key = "1"
-		self.fsm1.store(key, self.ts_notime)
+		self.fsm1.store(self.ts_notime, key)
 		self.assertEqual( self.fsm1.size(key), 3)
 
 	def test_singleSize(self):
 		key = "1"
-		self.fsm1.store(key, self.ts_single)
+		self.fsm1.store(self.ts_single, key)
 		self.assertEqual( self.fsm1.size(key), 1)
 
 	def test_atsSize(self):
 		key = "1"
-		self.fsm1.store(key, self.ats)
+		self.fsm1.store(self.ats, key)
 		self.assertEqual( self.fsm1.size(key), 3)
 
 	def test_getNonExistentSize(self):
