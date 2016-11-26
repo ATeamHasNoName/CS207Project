@@ -9,7 +9,7 @@ from TimeSeries import TimeSeries
 
 # Test cases for the WrappedDB class
 
-# NOTE: Coverage on WrappedDB is not 100% because lines 40-44 where we re-randomize the keys 
+# NOTE: Coverage on WrappedDB is not 100% because lines 79-83 where we re-randomize the keys 
 # to ensure we get a unique key is impossible to test. However we know the logic is correct by 
 # testing the random key generator function before that.
 class WrappedDBTest(unittest.TestCase):
