@@ -47,11 +47,21 @@ class BinaryNodeRef(ValueRef):
     @staticmethod
     def referent_to_bytes(referent):
         "use pickle to convert node to bytes"
+        leftAddr = None
+        if referent.left is not None:
+            leftAddr = referent.left.value_ref.address
+        rightAddr = None
+        if referent.right is not None:
+            rightAddr = referent.right.value_ref.address
+        print('leftAddr: ', leftAddr)
+        print('key: ', referent.key)
+        print('value: ', referent.value_ref.address)
+        print('rightAddr: ', leftAddr)
         return pickle.dumps({
-            'left': referent.left_ref.address,
+            'left': leftAddr,
             'key': referent.key,
             'value': referent.value_ref.address,
-            'right': referent.right_ref.address,
+            'right': rightAddr,
         })
 
     @staticmethod
@@ -59,28 +69,69 @@ class BinaryNodeRef(ValueRef):
         "unpickle bytes to get a node object"
         d = pickle.loads(string)
         return BinaryNode(
-            BinaryNodeRef(address=d['left']),
+            BinaryNodeRef(address=d['left'])._referent,
             d['key'],
             ValueRef(address=d['value']),
-            BinaryNodeRef(address=d['right']),
+            BinaryNodeRef(address=d['right'])._referent,
         )
+
+class Color(object):
+    RED = 0
+    BLACK = 1
     
 class BinaryNode(object):
     @classmethod
     def from_node(cls, node, **kwargs):
         "clone a node with some changes from another one"
         return cls(
-            left_ref=kwargs.get('left_ref', node.left_ref),
+            left=kwargs.get('left', node.left),
             key=kwargs.get('key', node.key),
-            value_ref=kwargs.get('value_ref', node.value_ref),
-            right_ref=kwargs.get('right_ref', node.right_ref),
+            value_ref=kwargs.get('value', node.value_ref),
+            right=kwargs.get('right', node.right),
         )
 
-    def __init__(self, left_ref, key, value_ref, right_ref):
-        self.left_ref = left_ref
+    def __init__(self, left, key, value_ref, right, color=Color.RED):
+        self._color = color
+        self.left = left
         self.key = key
         self.value_ref = value_ref
-        self.right_ref = right_ref
+        self.right = right
+
+    @property
+    def color(self):
+        return self._color
+    
+    # def blacken(self):
+    #     if self.is_red():
+    #         return BinaryNode(
+    #             self.left_ref,
+    #             self.key,
+    #             self.value_ref
+    #             self.right_ref,
+    #             color=Color.BLACK,
+    #         )
+    #     return self
+
+    def is_red(self):
+        return self._color == Color.RED
+
+    def is_black(self):
+        return self._color == Color.BLACK
+
+    # def rotate_left(self):
+    #     rightNode = self.right_ref
+    #     newLeftNode = BinaryNode(self.left_ref, self.key, self.value_ref, BinaryTree().update(self.right_ref), color=self.color)
+    #     return BinaryNode(
+    #         RedBlackTree(
+    #             self.left,
+    #             self.value,
+    #             EmptyRedBlackTree().update(self.right.left),
+    #             color=self.color,
+    #         ),
+    #         self.right.value,
+    #         self.right.right,
+    #         color=self.right.color,
+    #     )
 
     def store_refs(self, storage):
         "method for a node to store all of its stuff"
@@ -89,8 +140,14 @@ class BinaryNode(object):
         #BinaryNodeRef.prepate_to_store
         #which calls this again and recursively stores
         #the whole tree
-        self.left_ref.store(storage)
-        self.right_ref.store(storage)
+        
+        # TODO: Uncomment this part if necessary
+        if self.left is not None:
+            self.left.value_ref.store(storage)
+        if self.right is not None:
+            self.right.value_ref.store(storage)
+        # self.left_ref.store(storage)
+        # self.right_ref.store(storage)
 
 class BinaryTree(object):
     "Immutable Binary Tree class. Constructs new tree on changes"
@@ -110,6 +167,10 @@ class BinaryTree(object):
         self._tree_ref = BinaryNodeRef(
             address=self._storage.get_root_address())
 
+    @property
+    def tree_ref(self):
+        return self._tree_ref
+
     def get(self, key):
         "get value for a key"
         #your code here
@@ -122,9 +183,9 @@ class BinaryTree(object):
         #traverse until you find appropriate node
         while node is not None:
             if key < node.key:
-                node = self._follow(node.left_ref)
+                node = node.left#self._follow(node.left_ref)
             elif key > node.key:
-                node = self._follow(node.right_ref)
+                node = node.right #self._follow(node.right_ref)
             else:
                 return self._follow(node.value_ref)
         raise KeyError
@@ -139,28 +200,29 @@ class BinaryTree(object):
         node = self._follow(self._tree_ref)
         value_ref = ValueRef(value)
         #insert and get new tree ref
-        self._tree_ref = self._insert(node, key, value_ref)
-        
+        # TODO: Not sure if address is correct
+        # self._tree_ref = self._insert(node, key, value_ref)
+        self._tree_ref = BinaryNodeRef(address= self._storage.get_root_address(), referent=self._insert(node, key, value_ref))
     
     def _insert(self, node, key, value_ref):
         "insert a new node creating a new path from root"
         #create a tree ifnthere was none so far
         if node is None:
             new_node = BinaryNode(
-                BinaryNodeRef(), key, value_ref, BinaryNodeRef())
+                None, key, value_ref, None)
         elif key < node.key:
             new_node = BinaryNode.from_node(
                 node,
-                left_ref=self._insert(
-                    self._follow(node.left_ref), key, value_ref))
+                left=self._insert(
+                    node.left, key, value_ref))
         elif key > node.key:
             new_node = BinaryNode.from_node(
                 node,
-                right_ref=self._insert(
-                    self._follow(node.right_ref), key, value_ref))
+                right=self._insert(
+                    node.right, key, value_ref))
         else: #create a new node to represent this data
             new_node = BinaryNode.from_node(node, value_ref=value_ref)
-        return BinaryNodeRef(referent=new_node)
+        return new_node
 
     def delete(self, key):
         "delete node with key, creating new tree and path"
@@ -176,31 +238,31 @@ class BinaryTree(object):
         elif key < node.key:
             new_node = BinaryNode.from_node(
                 node,
-                left_ref=self._delete(
-                    self._follow(node.left_ref), key))
+                left=self._delete(
+                    node.left, key))
         elif key > node.key:
             new_node = BinaryNode.from_node(
                 node,
-                right_ref=self._delete(
-                    self._follow(node.right_ref), key))
+                right=self._delete(
+                    node.right, key))
         else:
-            left = self._follow(node.left_ref)
-            right = self._follow(node.right_ref)
+            left = node.left
+            right = node.right
             if left and right:
                 replacement = self._find_max(left)
-                left_ref = self._delete(
-                    self._follow(node.left_ref), replacement.key)
+                left = self._delete(
+                    node.left, replacement.key)
                 new_node = BinaryNode(
-                    left_ref,
+                    left,
                     replacement.key,
                     replacement.value_ref,
-                    node.right_ref,
+                    node.right,
                 )
             elif left:
-                return node.left_ref
+                return node.left
             else:
-                return node.right_ref
-        return BinaryNodeRef(referent=new_node)
+                return node.right
+        return new_node
 
     def _follow(self, ref):
         "get a node from a reference"
@@ -209,7 +271,7 @@ class BinaryTree(object):
     
     def _find_max(self, node):
         while True:
-            next_node = self._follow(node.right_ref)
+            next_node = node.right
             if next_node is None:
                 return node
             node = next_node
