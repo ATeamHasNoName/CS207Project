@@ -1,4 +1,6 @@
 {
+  "WrappedDB.py::WrappedDB.WrappedDB.getTimeSeries": true,
+  "WrappedDB.py::WrappedDB.WrappedDB.getTimeSeriesSize": true,
   "WrappedDB.py::WrappedDB.WrappedDB.storeKeyAndTimeSeries": true,
   "test_WrappedDB.py::WrappedDBTest::test_cacheFull": true,
   "test_WrappedDB.py::WrappedDBTest::test_cacheFullComplex": true,

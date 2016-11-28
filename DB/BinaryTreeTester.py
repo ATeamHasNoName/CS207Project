@@ -52,8 +52,13 @@ sys.path.append('../')
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from TimeSeries import TimeSeries
 # Test storage
-wdb = WrappedDB('testwdb.dbdb')
+wdb = WrappedDB('testwdb.dbdb', cacheSize=0)
+
 ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
-key = wdb.storeKeyAndTimeSeries(key="1", timeSeries=ts)
-# wdb.getTimeSeries("1").values()
+
+key1 = wdb.storeKeyAndTimeSeries(key="2", timeSeries=ts)
+key2 = wdb.storeKeyAndTimeSeries(key="1", timeSeries=ts)
+# print(wdb.getTimeSeries("2").values())
+
+
 os.remove('testwdb.dbdb')

@@ -53,6 +53,7 @@ class BinaryNodeRef(ValueRef):
         rightAddr = None
         if referent.right is not None:
             rightAddr = referent.right.value_ref.address
+        print('Store:\n=========')
         print('leftAddr: ', leftAddr)
         print('key: ', referent.key)
         print('value: ', referent.value_ref.address)
@@ -68,6 +69,11 @@ class BinaryNodeRef(ValueRef):
     def bytes_to_referent(string):
         "unpickle bytes to get a node object"
         d = pickle.loads(string)
+        print('Get:\n=========')
+        print('left: ', BinaryNodeRef(address=d['left'])._referent)
+        print('key: ', d['key'])
+        print('value: ', ValueRef(address=d['value']))
+        print('right: ', BinaryNodeRef(address=d['right'])._referent)
         return BinaryNode(
             BinaryNodeRef(address=d['left'])._referent,
             d['key'],
