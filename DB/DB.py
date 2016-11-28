@@ -64,6 +64,10 @@ class BinaryNodeRef(ValueRef):
             ValueRef(address=d['value']),
             BinaryNodeRef(address=d['right']),
         )
+
+class Color(object):
+    RED = 0
+    BLACK = 1
     
 class BinaryNode(object):
     @classmethod
@@ -74,13 +78,88 @@ class BinaryNode(object):
             key=kwargs.get('key', node.key),
             value_ref=kwargs.get('value_ref', node.value_ref),
             right_ref=kwargs.get('right_ref', node.right_ref),
+            color=kwargs.get('color', node.color)
         )
 
-    def __init__(self, left_ref, key, value_ref, right_ref):
+    def __init__(self, left_ref, key, value_ref, right_ref, color=Color.RED):
         self.left_ref = left_ref
         self.key = key
         self.value_ref = value_ref
         self.right_ref = right_ref
+        self.color = color
+
+    def is_red(self):
+        return self.color == Color.RED
+
+    def is_black(self):
+        return self.color == Color.BLACK
+
+    # If node is red, returns a black version of the node
+    def blacken(self):
+        if self.is_red():
+            return BinaryNode(self.left_ref, self.key, self.value_ref, self.right_ref, color=Color.BLACK)
+
+    # TODO: Have to handle cases where right_ref or left_ref are None
+    
+    def rotate_left(self):
+        # Rotate around right node
+        rightNode = self.right_ref._referent
+        # Get new left ref
+        leftNode = BinaryNode(self.left_ref, self.key, self.value_ref, rightNode.left_ref, color=self.color)
+        newLeftRef = BinaryNodeRef(referent=leftNode, address=self.value_ref.address())
+        return BinaryNode(newLeftRef, rightNode.key, rightNode.value_ref, rightNode.right_ref, color=rightNode.color)
+
+    def rotate_right(self):
+        # Rotate around left node
+        leftNode = self.left_ref._referent
+        # Get new right ref
+        rightNode = BinaryNode(leftNode.right_ref, self.key, self.value_ref, self.right_ref, color=self.color)
+        newRightRef = BinaryNodeRef(referent=rightNode, address=self.value_ref.address())
+        return BinaryNode(leftNode.left_ref, leftNode.key, leftNode.value_ref, newRightRef, color=leftNode.color)
+
+    def recolored(self):
+        # Blacken left and right nodes
+        leftNode = self.left_ref._referent.blacken()
+        rightNode = self.right_ref._referent.blacken()
+        leftRef = BinaryNodeRef(referent=leftNode, address=self.left_ref.address())
+        rightRef = BinaryNodeRef(referent=rightNode, address=self.right_ref.address())
+        return BinaryNode(leftRef, self.key, self.value_ref, rightRef, color=Color.RED)
+
+    def balance(self):
+        # If red, no need to rebalance
+        if self.is_red():
+            return self
+        # Get all nodes first
+        leftNode = self.left_ref._referent
+        rightNode = self.right_ref._referent
+        leftOfLeftNode = leftNode.left_ref._referent
+        rightOfLeftNode = leftNode.right_ref._referent
+        leftOfRightNode = rightNode.left_ref._referent
+        rightOfRightNode = rightNode.right_ref._referent
+        # Perform the rebalancing
+        
+        # On the left node
+        if leftNode.is_red():
+            if rightNode.is_red():
+                return self.recolored()
+            if leftOfLeftNode.is_red():
+                return self.rotate_right().recolored()
+            if rightOfLeftNode.is_red():
+                newLeftNode = leftNode.rotate_left()
+                newLeftRef = BinaryNodeRef(referent=newLeftNode, address=newLeftNode.value_ref.address())
+                return BinaryNode(newLeftRef, self.key, self.value_ref, self.right_ref, color=self.color).rotate_right().recolored()
+            return self
+
+        # On the right node
+        if rightNode.is_red():
+            if rightOfRightNode.is_red():
+                return self.rotate_left().recolored()
+            if leftOfRightNode.is_red():
+                newRightNode = rightNode.rotate_right()
+                newRightRef = BinaryNodeRef(referent=newRightNode, address=newRightNode.value_ref.address())
+                return BinaryNode(self.left_ref, self.key, self.value_ref, newRightRef, color=self.color).rotate_left().recolored()
+
+        return self
 
     def store_refs(self, storage):
         "method for a node to store all of its stuff"
@@ -147,7 +226,7 @@ class BinaryTree(object):
         #create a tree ifnthere was none so far
         if node is None:
             new_node = BinaryNode(
-                BinaryNodeRef(), key, value_ref, BinaryNodeRef())
+                BinaryNodeRef(), key, value_ref, BinaryNodeRef(), color=Color.RED)
         elif key < node.key:
             new_node = BinaryNode.from_node(
                 node,
@@ -160,6 +239,8 @@ class BinaryTree(object):
                     self._follow(node.right_ref), key, value_ref))
         else: #create a new node to represent this data
             new_node = BinaryNode.from_node(node, value_ref=value_ref)
+        # Balance new_node
+        new_node = new_node.balance().blacken()
         return BinaryNodeRef(referent=new_node)
 
     def delete(self, key):
