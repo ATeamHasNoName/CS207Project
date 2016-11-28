@@ -132,14 +132,17 @@ class BinaryNode(object):
         # Get all nodes first
         leftNode = self.left_ref._referent
         rightNode = self.right_ref._referent
-        leftOfLeftNode = leftNode.left_ref._referent
-        rightOfLeftNode = leftNode.right_ref._referent
-        leftOfRightNode = rightNode.left_ref._referent
-        rightOfRightNode = rightNode.right_ref._referent
+        if leftNode is not None:
+            leftOfLeftNode = leftNode.left_ref._referent
+            rightOfLeftNode = leftNode.right_ref._referent
+        if rightNode is not None:
+            leftOfRightNode = rightNode.left_ref._referent
+            rightOfRightNode = rightNode.right_ref._referent
+
         # Perform the rebalancing
         
         # On the left node
-        if leftNode.is_red():
+        if leftNode is not None and leftNode.is_red():
             if rightNode.is_red():
                 return self.recolored()
             if leftOfLeftNode.is_red():
@@ -151,7 +154,7 @@ class BinaryNode(object):
             return self
 
         # On the right node
-        if rightNode.is_red():
+        if rightNode is not None and rightNode.is_red():
             if rightOfRightNode.is_red():
                 return self.rotate_left().recolored()
             if leftOfRightNode.is_red():
