@@ -1,14 +1,1 @@
-{
-  "WrappedDB.py::WrappedDB.WrappedDB.getTimeSeries": true,
-  "WrappedDB.py::WrappedDB.WrappedDB.storeKeyAndTimeSeries": true,
-  "test_WrappedDB.py::WrappedDBTest::test_cacheFull": true,
-  "test_WrappedDB.py::WrappedDBTest::test_cacheFullComplex": true,
-  "test_WrappedDB.py::WrappedDBTest::test_cacheNotFull_getMultiple": true,
-  "test_WrappedDB.py::WrappedDBTest::test_cacheNotFull_getOnce": true,
-  "test_WrappedDB.py::WrappedDBTest::test_keyIsAlreadyInDB": true,
-  "test_WrappedDB.py::WrappedDBTest::test_storeAndGetSize": true,
-  "test_WrappedDB.py::WrappedDBTest::test_storeAndGetSizeSingle": true,
-  "test_WrappedDB.py::WrappedDBTest::test_storeAndGetWithKey": true,
-  "test_WrappedDB.py::WrappedDBTest::test_storeAndGetWithKeyNoTime": true,
-  "test_WrappedDB.py::WrappedDBTest::test_storeAndGetWithoutKey": true
-}
+{}
