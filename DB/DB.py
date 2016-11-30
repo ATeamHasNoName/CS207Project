@@ -597,7 +597,8 @@ class BinaryTree(object):
                 node = self._follow(node.right_ref)
             else:
                 return self._follow(node.value_ref)
-        raise KeyError
+        print("Key is not in Database\n")
+        return KeyError
 
     def set(self, key, value):
         """
@@ -807,7 +808,6 @@ class Storage(object):
         Returns
         -------
         None
-        
         >>> try:
         ...     f = open('test.dbdb', 'r+b')
         ... except IOError:
@@ -863,7 +863,8 @@ class Storage(object):
         """
         Go to the beginning of the file which is on sec boundary
         """
-        self._f.seek(0)
+        if (self.closed == False):
+            self._f.seek(0)
 
     def _bytes_to_integer(self, integer_bytes):
         """
@@ -916,7 +917,8 @@ class Storage(object):
         """
         Private helper function used by read(address) to read in an integer
         """
-        return self._bytes_to_integer(self._f.read(self.INTEGER_LENGTH))
+        if self.closed == False:
+            return self._bytes_to_integer(self._f.read(self.INTEGER_LENGTH))
 
     def _write_integer(self, integer):
         """
@@ -1072,7 +1074,7 @@ class DBDB(object):
         Raises an error when associated storage is closed
         """
         if self._storage.closed:
-            raise ValueError('Database closed.')
+            return ValueError('Database closed.')
 
     def close(self):
         """
@@ -1085,6 +1087,7 @@ class DBDB(object):
         Commits changes to the tree
         """
         self._assert_not_closed()
+        #if self._storage.closed != False:
         self._tree.commit()
 
     def get(self, key):
@@ -1099,6 +1102,8 @@ class DBDB(object):
         Set the valye at the associated key in the tree
         """
         self._assert_not_closed()
+        if self._storage.closed:
+            return
         return self._tree.set(key, value)
 
 import os

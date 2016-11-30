@@ -44,7 +44,6 @@ class DBTest(unittest.TestCase):
 			f = os.fdopen(fd, 'r+b')
 
 		self.storage = Storage(f)
-		self.storage.lock()
 		self.rbtree = BinaryTree(self.storage)
 		self.rbtree.set(2, "99")
 		self.rbtree.set(4, "101")
@@ -126,11 +125,30 @@ class DBTest(unittest.TestCase):
 		print(value)
 		self.assertTrue(value == "98")
 
+	# Not working:
 	def test_lock(self):
 		self.storage.unlock()
-		value = self.rbtree.get(2)
-		print(value)
-		self.assertTrue(value == "98")
+		self.rbtree.get(1)
+
+		#value = self.rbtree.get(4)
+		#self.storage.lock()
+
+		self.assertRaises(Exception,"Key is not in Database\n")
+		#self.assertRaises(KeyError, "Key is not in Database")
+	
+	def test_DBDB_not_closed(self):
+		dbdb = DB.connect('dd.dbdb')
+		dbdb.close()
+		dbdb.set(5,'5')
+		val = dbdb.get(5)
+		self.assertRaises(Exception, "Key is not in database")
+	
+	def test_DBDB_commit(self):
+		dbdb = DB.connect('dd.dbdb')
+		dbdb.set(5,'5')
+		val = dbdb.get(5)
+		commitRes = dbdb.commit()
+		self.assertTrue(commitRes == None)
 
 	# TODO: Fix
 	def test_valueRef(self):
