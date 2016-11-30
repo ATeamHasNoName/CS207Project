@@ -389,7 +389,7 @@ class BinaryNode(object):
         leftNode = self.left_ref._referent
         # Get new right ref
         rightNode = BinaryNode(leftNode.right_ref, self.key, self.value_ref, self.right_ref, color=self.color)
-        newRightRef = BinaryNodeRef(referent=rightNode)#, address=self.value_ref.address)
+        newRightRef = BinaryNodeRef(referent=rightNode)
         return BinaryNode(leftNode.left_ref, leftNode.key, leftNode.value_ref, newRightRef, color=leftNode.color)
 
     def recolored(self):

@@ -43,7 +43,6 @@ class WrappedDB:
 	# Stores a time series by key in the DB
 	# Returns the key after storing
 	def storeKeyAndTimeSeries(self, timeSeries, key=None):
-		print("Called again")
 		"""
 		Stores an instance of SizedContainerTimeSeriesInterface using a string or int key.
 		If no key is provided it randomly generates a key in the following fashion: TimeStamp+randomNumberBetween0-999. 
@@ -92,7 +91,6 @@ class WrappedDB:
 		self.db.set(str(key), self._encode(timeSeries))
 		self._storeKeyAndTimeSeriesSize(timeSeries, str(key))
 		self.db.commit()
-		print("++++++++")
 		return key
 
 
