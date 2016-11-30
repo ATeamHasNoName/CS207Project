@@ -470,7 +470,6 @@ class BinaryNode(object):
         # On the right node
         if rightNode is not None and rightNode.is_red():
             if rightOfRightNode is not None and rightOfRightNode.is_red():
-                print('hey')
                 return self.rotate_left().recolored()
             if leftOfRightNode is not None and leftOfRightNode.is_red():
                 newRightNode = rightNode.rotate_right()
