@@ -271,46 +271,6 @@ class BinaryTree(object):
             
         return BinaryNodeRef(referent=new_node)
 
-    def delete(self, key):
-        "delete node with key, creating new tree and path"
-        if self._storage.lock():
-            self._refresh_tree_ref()
-        node = self._follow(self._tree_ref)
-        self._tree_ref = self._delete(node, key)
-        
-    def _delete(self, node, key):
-        "underlying delete implementation"
-        if node is None:
-            raise KeyError
-        elif key < node.key:
-            new_node = BinaryNode.from_node(
-                node,
-                left_ref=self._delete(
-                    self._follow(node.left_ref), key))
-        elif key > node.key:
-            new_node = BinaryNode.from_node(
-                node,
-                right_ref=self._delete(
-                    self._follow(node.right_ref), key))
-        else:
-            left = self._follow(node.left_ref)
-            right = self._follow(node.right_ref)
-            if left and right:
-                replacement = self._find_max(left)
-                left_ref = self._delete(
-                    self._follow(node.left_ref), replacement.key)
-                new_node = BinaryNode(
-                    left_ref,
-                    replacement.key,
-                    replacement.value_ref,
-                    node.right_ref,
-                )
-            elif left:
-                return node.left_ref
-            else:
-                return node.right_ref
-        return BinaryNodeRef(referent=new_node)
-
     def _follow(self, ref):
         "get a node from a reference"
         #calls BinaryNodeRef.get
