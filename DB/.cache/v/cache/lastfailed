@@ -1,1 +1,3 @@
-{}
+{
+  "test_DB.py::DBTest::test_lock": true
+}
