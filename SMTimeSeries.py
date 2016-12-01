@@ -1,6 +1,7 @@
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from TimeSeries import TimeSeries
 import numpy as np
+import os
 import sys
 sys.path.append('./DB/')
 from WrappedDB import WrappedDB
@@ -24,40 +25,62 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 		-------
 		None
 	
-		>>> smts = SMTimeSeries[1.5, 2, 2.5, 3, 10.5], [1,3,0,1.5,19], "7")
+		>>> smts = SMTimeSeries([1.5, 2,6,8,9], [1, 3, 0, 1.5, 10])
 		>>> type(smts)
-		<class 'FileStorageManager.FileStorageManager'>
+		<class 'SMTimeSeries.SMTimeSeries'>
 		"""
 
 		self.DB = WrappedDB("SM_DB.dbdb")
 		self.timeSeries = TimeSeries(values, times)
-		self.key = self.DB.storeKeyAndTimeSeries(self.timeSeries, key)
+		self.key = self.DB.storeKeyAndTimeSeries(key = key, timeSeries = self.timeSeries)
 
-	def from_db(self, key):
+	def from_db(self, key, database):
 		"""
 		Looks up a Time Series with identifier key and returns it.
+		
+		Parameters
+		----------
+		key: a key to fetch the TimeSeries from the database
+
+		Returns
+		-------
+		None
+
+		>>> DB = WrappedDB("SM_DB.dbdb")
+		>>> key = "7"
+		>>> values = [1.5, 2, 2.5, 3, 10.5];
+		>>> times = [1,3,0,1.5,19];
+		>>> ts = TimeSeries(values, times)
+		>>> smts = SMTimeSeries(values, times, key)
+		>>> key = DB.storeKeyAndTimeSeries(key = key, timeSeries = ts)
+		>>> timeSeriesFromDB = smts.from_db(key, "SM_DB.dbdb")
+		>>> timeSeriesFromDB
+		TimeSeries([(0.0, 2.5), (1.0, 1.5), (1.5, 3.0), (3.0, 2.0), (19.0, 10.5)])
+		>>> os.remove("SM_DB.dbdb")
 		"""
 
 		if (key == None):
+			print("Key is not in Database\n")
 			return KeyError
 
 		self.key = key
-		self.DB = WrappedDB("SM_DB.dbdb")
+		self.DB = WrappedDB(database)
 	
 		return self.DB.getTimeSeries(self.key)
 
 	# Required functions according to the SizedContainerTimeSeriesInterface:
 	def __getitem__(self, item):
-		return self.timeSeries.getitem(item)
+		return self.timeSeries[item]
 
 	def __iter__(self):
-		return self.timeSeries.iter()
+		for v in self.timeSeries:
+			yield v
 
 	def __len__(self):
-		return self.timeSeries.len()
+		return len(self.timeSeries)
 
 	def __setitem__(self, time, value):
-		return self.timeSeries.setitem(time, value)
+		self.timeSeries[time] = value 
 
 	def items(self):
 		return self.timeSeries.items()

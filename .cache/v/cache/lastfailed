@@ -1,9 +1,1 @@
-{
-  "DB/portalocker/tests/test_combined.py::test_combined": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_with_key": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_without_key": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_getitem": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_iter": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_len": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_setitem": true
-}
+{}
