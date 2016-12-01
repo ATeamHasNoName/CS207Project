@@ -55,36 +55,8 @@ class DBTest(unittest.TestCase):
 		self.rbtree.set(8, "105")
 		self.	rbtree.set(2, "99")
 		self.	rbtree.set(4444, "101")
-		
-
-		"""	
-		self.	rbtree.set(4, "101")
-		self.	rbtree.set(4, "101")
-		self.	rbtree.set(4, "101")
-		self.	rbtree.set(4, "101")
-		self.	rbtree.set(4, "101")
-		self.	rbtree.set(1, "98")
-		self.	rbtree.set(3, "100")
-		self.	rbtree.set(5, "102")
-		self.	rbtree.set(6, "103")
-		self.	rbtree.set(7, "104")	
-		self.	rbtree.set(8, "105")
-		self.	rbtree.set(10, "105")
-		self.	rbtree.set(20, "105")
-		#self.	rbtree.set(30, "105")
-		#self.	rbtree.set(15, "105")
-		
-		
-		self.	rbtree.set(18, "105")
-		self.	rbtree.set(50, "105")
-		self.	rbtree.set(32, "105")
-		self.	rbtree.set(81, "105")
-		"""
 
 		self.root = self.rbtree._follow(self.rbtree._tree_ref)
-		self.ts = TimeSeries(values=[1, 3, 0, 1.5, 1], times=[1.5, 2, 2.5, 3, 10.5])
-		self.ts_notime = TimeSeries(values=[2, 3, 4], times=None)
-		self.ts_single = TimeSeries(values=[-2], times=[1])
 
 	def tearDown(self):
 		os.remove(self.getName())
@@ -92,9 +64,6 @@ class DBTest(unittest.TestCase):
 		del self.storage
 		del self.rbtree
 		del self.root
-		del self.ts
-		del self.ts_notime
-		del self.ts_single
 
 	def test_isInstance_BinaryTree(self):
 		self.assertTrue(isinstance(self.rbtree, BinaryTree))
@@ -124,17 +93,6 @@ class DBTest(unittest.TestCase):
 		value = self.rbtree.get(1)
 		print(value)
 		self.assertTrue(value == "98")
-
-	# Not working:
-	def test_lock(self):
-		self.storage.unlock()
-		self.rbtree.get(1)
-
-		#value = self.rbtree.get(4)
-		#self.storage.lock()
-
-		self.assertRaises(Exception,"Key is not in Database\n")
-		#self.assertRaises(KeyError, "Key is not in Database")
 	
 	def test_DBDB_not_closed(self):
 		dbdb = DB.connect('dd.dbdb')
@@ -150,12 +108,50 @@ class DBTest(unittest.TestCase):
 		commitRes = dbdb.commit()
 		self.assertTrue(commitRes == None)
 
-	# TODO: Fix
-	def test_valueRef(self):
-		self.root.value_ref._referent = None
-		self.root.value_ref._address = 0xff
-		valueref = self.root.value_ref.get(self.storage)
-		self.assertTrue(valueref == '')
+	def test_balanced_one_node(self):
+		rbtree = BinaryTree(self.storage)
+		rbtree.set(9, "99")
+		root = rbtree._follow(rbtree._tree_ref)
+		self.assertTrue(self.is_validly_balanced(root),1)
+
+	def test_balanced_right_insert(self):
+		rbtree = BinaryTree(self.storage)
+		rbtree.set(0, "99")
+		rbtree.set(1, "101")
+		rbtree.set(2, "98")
+		rbtree.set(3, "10")
+		rbtree.set(4, "12")
+		rbtree.set(5, "152")
+		root = rbtree._follow(rbtree._tree_ref)
+		self.assertTrue(self.is_validly_balanced(root),1)
+
+	def test_balanced_left_insert(self):
+		rbtree = BinaryTree(self.storage)
+		rbtree.set(9, "99")
+		rbtree.set(8, "101")
+		rbtree.set(7, "98")
+		rbtree.set(6, "10")
+		rbtree.set(5, "12")
+		rbtree.set(4, "152")
+		root = rbtree._follow(rbtree._tree_ref)
+		self.assertTrue(self.is_validly_balanced(root),1)
+
+
+	def test_balanced_random_insertions(self):
+		rbtree = BinaryTree(self.storage)
+		rbtree.set(9, "99")
+		rbtree.set(1, "101")
+		rbtree.set(70, "98")
+		rbtree.set(6, "10")
+		rbtree.set(50, "12")
+		rbtree.set(4, "152")
+		rbtree.set(40, "152")
+		rbtree.set(3, "152")
+		rbtree.set(30, "152")
+		rbtree.set(2, "152")
+		rbtree.set(20, "152")
+		root = rbtree._follow(rbtree._tree_ref)
+		self.assertTrue(self.is_validly_balanced(root),1)
 
 	def test_Big_RBT_Tree(self):
 		rbtree = BinaryTree(self.storage)
@@ -185,8 +181,6 @@ class DBTest(unittest.TestCase):
 
 		root = rbtree._follow(rbtree._tree_ref)
 		self.assertEquals(self.is_validly_balanced(root), 1)
-		#self.assertTrue(root.key == 4)
-
 
 	def test_Big_RBT_Tree2(self):
 		rbtree = BinaryTree(self.storage)
@@ -232,147 +226,6 @@ class DBTest(unittest.TestCase):
 		self.assertEquals(self.is_validly_balanced(root), 1)
 		#self.assertTrue(root.key == 7)
 
-	# Unable to test:
-	def test_bytes_to_referent_binaryRef(self):
-		self.assertTrue(1 == 1)
-
 	def test_if_node_is_black(self):
 		self.assertTrue(self.root.is_black() == 1)	
-
-	def test_lock_rbttree(self):
-		# Lock storage
-		self.storage.lock()
-		
-		# Get root:
-		root = self.rbtree._follow(self.rbtree._tree_ref)
-		self.assertTrue(1==1)
-
-
-
-
-
-
-
-
-
-"""
-		key = 1
-		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
-		ts_retrieved = self.wdb.getTimeSeries(key)
-		self.assertEquals(ts_retrieved.values()[0], 1)
-
-	def test_storeAndGetWithoutKey(self):
-		# Key is randomized here
-		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
-		ts_retrieved = self.wdb.getTimeSeries(key)
-		self.assertEquals(ts_retrieved.values()[0], 1)
-
-	def test_storeAndGetSize(self):
-		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
-		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 5)
-
-	def test_storeAndGetWithKeyNoTime(self):
-		key = "2"
-		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_notime)
-		ts_retrieved = self.wdb.getTimeSeries(key)
-		self.assertEquals(ts_retrieved.values()[0], 2)
-
-	def test_storeAndGetSizeSingle(self):
-		key = 999
-		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_single)
-		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 1)
-
-	def test_inputClassIsNotTimeSeries(self):
-		with self.assertRaises(ValueError):
-			self.wdb.storeKeyAndTimeSeries(timeSeries=[1,2,3])
-
-	def test_keyIsAlreadyInDB(self):
-		key = 1
-		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
-		with self.assertRaises(ValueError):
-			self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-
-	# Test cache
 	
-	def test_cacheNotFull_getOnce(self):
-		key = 1
-		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
-		# Not get yet, should not cache
-		self.assertEquals(self.wdb.cache, {})
-		# Get once, should cache it
-		self.wdb.getTimeSeries(key)
-		self.assertEquals(self.wdb.cache, {'1': self.ts})
-		self.assertEquals(self.wdb.keyToCount, {'1': 1})
-
-	def test_cacheNotFull_getMultiple(self):
-		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-		self.wdb.storeKeyAndTimeSeries(key=2, timeSeries=self.ts_single)
-		# Not get yet, should not cache
-		self.assertEquals(self.wdb.cache, {})
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(2)
-		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
-		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 1})
-
-	def test_cacheFull(self):
-		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-		self.wdb.storeKeyAndTimeSeries(key=2, timeSeries=self.ts_single)
-		self.wdb.storeKeyAndTimeSeries(key=3, timeSeries=self.ts_notime)
-		self.wdb.getTimeSeries(3)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(2)
-		self.wdb.getTimeSeries(2)
-		# key 3 should be replaced by 2
-		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
-		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 2, '3': 1})
-
-	def test_cacheFullComplex(self):
-		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-		self.wdb.storeKeyAndTimeSeries(key=2, timeSeries=self.ts_single)
-		self.wdb.storeKeyAndTimeSeries(key=3, timeSeries=self.ts_notime)
-		self.wdb.getTimeSeries(3)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(2)
-		self.wdb.getTimeSeries(2)
-		self.wdb.getTimeSeries(3)
-		self.wdb.getTimeSeries(3)
-		self.wdb.getTimeSeries(2)
-		self.assertEquals(sorted(list(self.wdb.cache.keys())), ['2', '3'])
-		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 3, '3': 3})
-
-	def test_noCache(self):
-		self.wdb_noCache.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-		self.wdb.storeKeyAndTimeSeries(key=2, timeSeries=self.ts_single)
-		self.wdb.storeKeyAndTimeSeries(key=3, timeSeries=self.ts_notime)
-		self.wdb.getTimeSeries(3)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(1)
-		self.wdb.getTimeSeries(2)
-		self.wdb.getTimeSeries(2)
-		self.assertEquals(self.wdb_noCache.cache, {})
-
-	# Test encode and decode
-
-	def test_encode(self):
-		timeSeriesString = self.wdb._encode(timeSeries=self.ts)
-		self.assertEqual(timeSeriesString, '(1.5,1);(2,3);(2.5,0);(3,1.5);(10.5,1)')
-
-	def test_decode(self):
-		timeSeriesString = '(1.5,1);(2,3);(2.5,0);(3,1.5);(10.5,1)'
-		timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
-		self.assertEqual(timeSeries, self.ts)
-
-	def test_decode_malformed1(self):
-		timeSeriesString = '(1.51);(2,3);(2.5,0);(3,1.5);(10.5,1)'
-		with self.assertRaises(ValueError):
-			timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
-
-	def test_decode_malformed2(self):
-		timeSeriesString = '(1.5,1;(2,3);(2.5,0);(3,1.5);(10.5,1)'
-		with self.assertRaises(ValueError):
-			timeSeries = self.wdb._decode(encodedTimeSeries=timeSeriesString)
-
-"""
