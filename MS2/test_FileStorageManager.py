@@ -1,12 +1,7 @@
 import unittest
-from TimeSeries import TimeSeries
-from ArrayTimeSeries import ArrayTimeSeries
-from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
-from FileStorageManager import FileStorageManager
 import sys
 import os
-sys.path.append('./DB/')
-from WrappedDB import WrappedDB
+from FileStorageManager import *
 
 # py.test --doctest-modules  --cov --cov-report term-missing FileStorageManager.py test_FileStorageManager.py
 

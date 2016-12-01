@@ -1,10 +1,12 @@
 import numpy as np
-from TimeSeries import TimeSeries
-from StorageManagerInterface import StorageManagerInterface
-import sys
 import os
-sys.path.append('./DB/')
-from WrappedDB import WrappedDB
+import sys
+from StorageManagerInterface import StorageManagerInterface
+
+try:
+	sys.path.append('./DB/'); from WrappedDB import *
+except ImportError:
+	sys.path.append('./MS2/DB/'); from WrappedDB import *
 
 class FileStorageManager(StorageManagerInterface):
 	"""

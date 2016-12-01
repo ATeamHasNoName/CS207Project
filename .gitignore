@@ -1,4 +1,5 @@
 TimeSeries.ipynb
 .coverage
+.cache/*
 *.pyc
 *.txt

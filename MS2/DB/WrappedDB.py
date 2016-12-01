@@ -4,9 +4,10 @@ import random
 import os
 import sys
 import operator
-sys.path.append('../')
+sys.path.append('../MS1/')
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from TimeSeries import TimeSeries
+from ArrayTimeSeries import ArrayTimeSeries
 
 # READ: Setup for DB
 # Download the .zip for portalocker here: https://github.com/WoLpH/portalocker and store it anywhere

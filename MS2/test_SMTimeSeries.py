@@ -1,11 +1,12 @@
 import unittest
-from TimeSeries import TimeSeries
-from ArrayTimeSeries import ArrayTimeSeries
-from SMTimeSeries import SMTimeSeries
 import sys
 import os
+from SMTimeSeries import SMTimeSeries
 sys.path.append('./DB/')
 from WrappedDB import WrappedDB
+sys.path.append('../../MS1/')
+from TimeSeries import TimeSeries
+from ArrayTimeSeries import ArrayTimeSeries
 
 # py.test --doctest-modules  --cov --cov-report term-missing SMTimeSeries.py test_SMTimeSeries.py
 

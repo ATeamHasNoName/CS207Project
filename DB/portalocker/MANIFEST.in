@@ -1,4 +1,0 @@
-include CHANGELOG
-include README.rst
-include LICENSE
-recursive-include tests *.py
