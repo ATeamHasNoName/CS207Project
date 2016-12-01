@@ -29,7 +29,9 @@ class SMTimeSeriesTest(unittest.TestCase):
 		del self.key
 		del self.DB
 		del self.ts1
+		del self.ts2
 		del self.smt1
+		del self.smt2
 		os.remove(self.dbname)
 
 	# Note that these tests are run in sequential order
@@ -40,19 +42,18 @@ class SMTimeSeriesTest(unittest.TestCase):
 	def test_from_db_with_key(self):
 		self.DB.storeKeyAndTimeSeries(key = self.key, timeSeries = self.ts1)
 		timeSeriesFromDB = self.smt1.from_db(self.key, self.dbname)
-		#timeSeriesFromDB = self.DB.getTimeSeries(self.key)
 		# Check if the fetched SMTimeSeries is the same class as was instantiated:
 		self.assertTrue(timeSeriesFromDB == self.ts1)		
 
 	def test_from_db_without_key(self):
 		self.DB.storeKeyAndTimeSeries(key = self.key, timeSeries = self.ts1)
 		timeSeriesFromDB = self.smt1.from_db(None, self.dbname)
-		#timeSeriesFromDB = self.DB.getTimeSeries(self.key)
 		# Check if the fetched SMTimeSeries is the same class as was instantiated:
 		self.assertRaises(Exception,"Key is not in Database\n")
 
-
-	# Tests for delegation methods:
+	"""
+	Tests for the delegation methods:
+	"""
 	def test_getitem(self):
 		self.assertEqual(self.smt1[2], 3)
 
@@ -65,14 +66,6 @@ class SMTimeSeriesTest(unittest.TestCase):
 	def test_len(self):
 		self.assertEqual(len(self.smt1), 5)
 
-	"""
-	def test_setitem(self):
-		_series = TimeSeries(values=[1, 3, 0, -1.5, -1], times=[1.5, 2, 2.5, 10.5, 3])
-		self.assertEqual(_series[3], -1)
-		_series[3] = 999
-		self.assertEqual(_series[3], 999)
-	"""
-
 	def test_setitem(self):
 		# Change value at time 1 to 3:
 		self.smt1[1] = 3
@@ -83,37 +76,36 @@ class SMTimeSeriesTest(unittest.TestCase):
 
 	def test_iteritems(self):
 		# Get iteritems from timeseries:
-		ts_list = []
+		tsList = []
 
 		for ts in self.ts1.iteritems():
-			ts_list.append(ts)
+			tsList.append(ts)
 
 		index = 0
 		for v in self.smt1.iteritems():
-			self.assertEqual(v, ts_list[index])
+			self.assertEqual(v, tsList[index])
 			index += 1
 
 	def test_itertimes(self):
-		ts_list = []
+		tsList = []
 
 		for a in self.ts1.itertimes():
-			ts_list.append(a)
+			tsList.append(a)
 
 		index = 0
 		for v in self.smt1.itertimes():
-			self.assertEqual(v, ts_list[index])
+			self.assertEqual(v, tsList[index])
 			index += 1
 
-
 	def test_itervalues(self):
-		ts_list = []
+		tsList = []
 
 		for a in self.ts1.itervalues():
-			ts_list.append(a)
+			tsList.append(a)
 
 		index = 0
 		for v in self.smt1.itervalues():
-			self.assertEqual(v, ts_list[index])
+			self.assertEqual(v, tsList[index])
 			index += 1
 
 	def test_mean(self):
