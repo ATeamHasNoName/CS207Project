@@ -1,3 +1,4 @@
+# py.test --doctest-modules  --cov --cov-report term-missing DB.py
 class ValueRef(object):
     """
     A reference to a string value on disk.
@@ -597,8 +598,7 @@ class BinaryTree(object):
                 node = self._follow(node.right_ref)
             else:
                 return self._follow(node.value_ref)
-        print("Key is not in Database\n")
-        return KeyError
+        raise KeyError
 
     def set(self, key, value):
         """

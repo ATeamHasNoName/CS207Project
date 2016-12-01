@@ -34,18 +34,31 @@ def height(node):
 	rightNode = node.right_ref._referent
 	return max(height(leftNode) + 1, height(rightNode) + 1)
 
+def heightMin(node):
+	if node is None:
+		return 0
+	leftNode = node.left_ref._referent
+	rightNode = node.right_ref._referent
+	return min(heightMin(leftNode) + 1, heightMin(rightNode) + 1)
+
+def is_validly_balanced(node):
+	# The height of the longest path to leaf cannot be more than 2x larger than the height of the shortest path to leaf
+	return height(node) <= 2*heightMin(node)
+
+
 def is_balanced(node):
 	if node is None:
 		return True
 	leftNode = node.left_ref._referent
 	rightNode = node.right_ref._referent
+	# Is balanced if absolute height difference is less than or equal to 1
 	isBalanced = abs(height(leftNode) - height(rightNode)) <= 1
 	return (isBalanced and is_balanced(leftNode) and is_balanced(rightNode))
 
 # Test btree
 btree = BinaryTree(storage)
 
-btree.set(2, "99")
+# btree.set(2, "99")
 # btree.set(4, "101")
 # btree.set(1, "98")
 # btree.set(3, "100")
@@ -67,8 +80,8 @@ btree.set(5, "104")
 # btree.set(6, "105")
 # btree.set(7, "106")
 root = getNodeFromRef(btree, btree._tree_ref)
-print(height(root))
-print(is_balanced(root))
+print(heightMin(root))
+print(is_validly_balanced(root))
 printTree(btree, btree._tree_ref, "-1", "none")
 
 

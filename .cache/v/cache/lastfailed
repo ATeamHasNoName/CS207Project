@@ -1,5 +1,5 @@
 {
-  "SMTimeSeries.py::SMTimeSeries.SMTimeSeries.__init__": true,
+  "DB/portalocker/tests/test_combined.py::test_combined": true,
   "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_with_key": true,
   "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_without_key": true,
   "test_SMTimeSeries.py::SMTimeSeriesTest::test_getitem": true,

@@ -39,7 +39,6 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 		"""
 
 		if (key == None):
-			print("Key is not in Database\n")
 			return KeyError
 
 		self.key = key

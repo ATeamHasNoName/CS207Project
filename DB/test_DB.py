@@ -12,27 +12,36 @@ from TimeSeries import TimeSeries
 # Test cases for the DB class
 
 class DBTest(unittest.TestCase):
-	def getName(self):
-		return "Bainn1.dbdb"
 
-	def height(self, node):
+	def getName(self):
+		return "dbtest.dbdb"
+
+	def _height(self, node):
+		"""
+		Private helper function that finds the longest path to a leaf node and returns it as an integer
+		"""
 		if node is None:
 			return 0
 		leftNode = node.left_ref._referent
 		rightNode = node.right_ref._referent
-		return max(self.height(leftNode) + 1, self.height(rightNode) + 1)
+		return max(self._height(leftNode) + 1, self._height(rightNode) + 1)
 	
-	def heightMin(self, node):
+	def _heightMin(self, node):
+		"""
+		Private helper function that finds the shortest path to a leaf node and returns it as an integer
+		"""
 		if node is None:
 			return 0
 		leftNode = node.left_ref._referent
 		rightNode = node.right_ref._referent
-		return min(self.heightMin(leftNode) + 1, self.heightMin(rightNode) + 1)
+		return min(self._heightMin(leftNode) + 1, self._heightMin(rightNode) + 1)
 	
 	def is_validly_balanced(self, node):
-		# The height of the longest path to leaf cannot be more than 2x larger than the height of the shortest path to leaf
-		return self.height(node) <= 2*self.heightMin(node)
-	
+		"""
+		The height of the longest path to leaf cannot be more than 2x larger than the 
+		height of the shortest path to leaf for it to be validly balanced as an RBT.
+		"""
+		return self._height(node) <= 2*self._heightMin(node)
 	
 	def setUp(self):
 		self.dbname = self.getName()
@@ -53,9 +62,8 @@ class DBTest(unittest.TestCase):
 		self.rbtree.set(6, "103")
 		self.rbtree.set(7, "104")
 		self.rbtree.set(8, "105")
-		self.	rbtree.set(2, "99")
-		self.	rbtree.set(4444, "101")
-
+		self.rbtree.set(2, "99")
+		self.rbtree.set(4444, "101")
 		self.root = self.rbtree._follow(self.rbtree._tree_ref)
 
 	def tearDown(self):
@@ -80,7 +88,6 @@ class DBTest(unittest.TestCase):
 
 	def test_BinaryTree_Right(self):
 		right = self.rbtree._follow(self.root.right_ref)
-		print (right.value_ref.address)
 		self.assertTrue(right.key == 6)
 
 	def test_root_address(self):
@@ -91,15 +98,25 @@ class DBTest(unittest.TestCase):
 
 	def test_get_value_binarytree(self):
 		value = self.rbtree.get(1)
-		print(value)
 		self.assertTrue(value == "98")
+
+	def test_get_none(self):
+		ref = ValueRef()
+		dbdb = DB.connect('test.dbdb')
+		storage = dbdb._storage
+		ref._referent = None
+		ref._address = 428
+		referent = ref.get(storage)
+		self.assertEquals(referent, '')
+		os.remove('test.dbdb')
 	
 	def test_DBDB_not_closed(self):
 		dbdb = DB.connect('dd.dbdb')
 		dbdb.close()
 		dbdb.set(5,'5')
-		val = dbdb.get(5)
-		self.assertRaises(Exception, "Key is not in database")
+		with self.assertRaises(KeyError):
+			val = dbdb.get(5)	
+		os.remove('dd.dbdb')
 	
 	def test_DBDB_commit(self):
 		dbdb = DB.connect('dd.dbdb')
@@ -107,6 +124,7 @@ class DBTest(unittest.TestCase):
 		val = dbdb.get(5)
 		commitRes = dbdb.commit()
 		self.assertTrue(commitRes == None)
+		os.remove('dd.dbdb')
 
 	def test_balanced_one_node(self):
 		rbtree = BinaryTree(self.storage)
@@ -135,7 +153,6 @@ class DBTest(unittest.TestCase):
 		rbtree.set(4, "152")
 		root = rbtree._follow(rbtree._tree_ref)
 		self.assertTrue(self.is_validly_balanced(root),1)
-
 
 	def test_balanced_random_insertions(self):
 		rbtree = BinaryTree(self.storage)
@@ -178,7 +195,6 @@ class DBTest(unittest.TestCase):
 		rbtree.set(8, "105")
 		rbtree.set(10, "105")
 		rbtree.set(20, "105")
-
 		root = rbtree._follow(rbtree._tree_ref)
 		self.assertEquals(self.is_validly_balanced(root), 1)
 
@@ -224,8 +240,6 @@ class DBTest(unittest.TestCase):
 		rbtree.set(240, "105")
 		root = rbtree._follow(rbtree._tree_ref)
 		self.assertEquals(self.is_validly_balanced(root), 1)
-		#self.assertTrue(root.key == 7)
 
 	def test_if_node_is_black(self):
-		self.assertTrue(self.root.is_black() == 1)	
-	
+		self.assertTrue(self.root.is_black() == 1)		
