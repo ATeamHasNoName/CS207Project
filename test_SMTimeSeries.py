@@ -65,11 +65,13 @@ class SMTimeSeriesTest(unittest.TestCase):
 	def test_len(self):
 		self.assertEqual(len(self.smt1), 5)
 
+	"""
 	def test_setitem(self):
 		_series = TimeSeries(values=[1, 3, 0, -1.5, -1], times=[1.5, 2, 2.5, 10.5, 3])
 		self.assertEqual(_series[3], -1)
 		_series[3] = 999
 		self.assertEqual(_series[3], 999)
+	"""
 
 	def test_setitem(self):
 		# Change value at time 1 to 3:
