@@ -71,7 +71,7 @@ def find_kth_similarity(input_file_name, k):
     for i in range(len(kth_similarity_list)):
         print("No.%d %s" % (i + 1, kth_similarity_list[i][1]))
 
-if __name__ == "__main__":
+if __name__ == "__main__":c
     input_file_name = sys.argv[1]
     k = int(sys.argv[2])
     find_kth_similarity(input_file_name, k)
