@@ -18,12 +18,8 @@ def stand(x, m, s):
     "standardize timeseries x by mean m and std deviation s"
     return ts.TimeSeries((x.values() - m) / s, x.times())
 
-def standarize(x):
-    """
-    standardize function
-    :param: timeseries data
-    :return: standardized timeseries by mean and deviation
-    """
+def standardize(x):
+    "simple standardize function"
     return stand(x, x.mean(), x.std())
 
 def ccor(ts1, ts2):
@@ -59,6 +55,7 @@ def kernel_dis(ts1, ts2, mult=1):
     return 2 * (1 - kernel_corr_val)
 
 #this is for a quick and dirty test of these functions
+"""
 if __name__ == "__main__":
     print("HI")
     t1 = tsmaker(0.5, 0.1, 0.01)
@@ -92,3 +89,4 @@ if __name__ == "__main__":
     test2 = ts.TimeSeries([1, 2], [3, 4])
     test_sumcorr = kernel_corr(test1, test2, mult=10)
     print(test_sumcorr)
+"""

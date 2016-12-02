@@ -20,7 +20,7 @@ def	gen_vps(num):
 	for i in range(num):
 		file_name = 'tsData/ts_data_'+str(vp_indexes[i])+'.txt'
 		vp_ts = load_ts_data(file_name)
-		std_vp_ts = ss.standarize(vp_ts)
+		std_vp_ts = ss.standardize(vp_ts)
 		vps_list.append(std_vp_ts)
 	return vps_list
 
@@ -32,7 +32,7 @@ def save_vp_dbs(num, vps_list):
 		for i in range(1000):
 			file_name = 'tsData/ts_data_' + str(i) + '.txt'
 			comp_ts = load_ts_data(file_name)
-			std_comp_ts = ss.standarize(comp_ts)
+			std_comp_ts = ss.standardize(comp_ts)
 			dis_to_vp = ss.kernel_dis(vps_list[index], std_comp_ts)
 			db.set(dis_to_vp, file_name)
 		db.commit()
@@ -45,7 +45,6 @@ def gen_dbs(num):
 	os.mkdir('vpDB')
 	vps = gen_vps(num)
 	save_vp_dbs(num, vps)
-	print("Done.")
 
 if __name__ == "__main__":
 	gen_dbs(20)
