@@ -37,7 +37,6 @@ class ValueRef(object):
             self.prepare_to_store(storage)
             self._address = storage.write(self.referent_to_bytes(self._referent))
 
-
 import pickle
 class BinaryNodeRef(ValueRef):
     "reference to a btree node on disk"
@@ -96,7 +95,6 @@ class BinaryNode(object):
         #the whole tree
         self.left_ref.store(storage)
         self.right_ref.store(storage)
-
 
 class BinaryTree(object):
     "Immutable Binary Tree class. Constructs new tree on changes"
@@ -248,8 +246,6 @@ class BinaryTree(object):
 import os
 import struct
 import portalocker
-
-
 class Storage(object):
     SUPERBLOCK_SIZE = 4096
     INTEGER_FORMAT = "!Q"
@@ -348,9 +344,7 @@ class Storage(object):
     def closed(self):
         return self._f.closed
 
-
 class DBDB(object):
-
     def __init__(self, f):
         self._storage = Storage(f)
         self._tree = BinaryTree(self._storage)
@@ -381,7 +375,6 @@ class DBDB(object):
     def delete(self, key):
         self._assert_not_closed()
         return self._tree.delete(key)
-
 
 import os
 def connect(dbname):
