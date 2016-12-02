@@ -147,31 +147,30 @@ class BinaryTree(object):
         #insert and get new tree ref
         self._tree_ref = self._insert(node, key, value_ref)
 
+    #new function for P7 of milestone 2
     def get_smaller_nodes(self, key):
-
+        "find all of the nodes in btreeDB whose key is less than given KEY"
         if not self._storage.locked:
             self._refresh_tree_ref()
-
         node = self._follow(self._tree_ref)
-
-        smaller_keys = []
-        smaller_vals = []
-
+        smaller_keys, smaller_vals = [], []
+        #using DFS recursion function to find smaller nodes
         smaller_keys, smaller_vals = self.dfs_helper(key, node, smaller_keys, smaller_vals)
         return smaller_keys, smaller_vals
 
     def dfs_helper(self, key, node, smaller_keys, smaller_vals):
+        "DFS recursion helper function for get_smaller_nodes"
         if node is None:
             return smaller_keys, smaller_vals
         elif key >= node.key:
             smaller_keys.append(node.key)
             smaller_vals.append(self._follow(node.value_ref))
+            #for right node
             right_node = self._follow(node.right_ref)
             self.dfs_helper(key, right_node, smaller_keys, smaller_vals)
-
+        #for left node
         left_node = self._follow(node.left_ref)
         self.dfs_helper(key, left_node, smaller_keys, smaller_vals)
-
         return smaller_keys, smaller_vals
     
     def _insert(self, node, key, value_ref):
@@ -374,7 +373,6 @@ class DBDB(object):
     def get_smaller_nodes(self, key):
         self._assert_not_closed()
         return self._tree.get_smaller_nodes(key)
-
 
     def set(self, key, value):
         self._assert_not_closed()

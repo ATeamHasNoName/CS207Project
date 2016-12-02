@@ -21,7 +21,7 @@ def stand(x, m, s):
 def standarize(x):
     """
     standardize function
-    :param: timeseries
+    :param: timeseries data
     :return: standardized timeseries by mean and deviation
     """
     return stand(x, x.mean(), x.std())
@@ -32,8 +32,6 @@ def ccor(ts1, ts2):
     f2 = np.conjugate(fft(ts2.values()))
     cc = ifft(f1 * f2).real
     return cc/(1.0 * len(ts1))
-
-
 
 # this is just for checking the max correlation with the
 #kernelized cross-correlation
@@ -56,6 +54,7 @@ def kernel_corr(ts1, ts2, mult=1):
     return Kxy / np.sqrt(Kxx * Kyy)
 
 def kernel_dis(ts1, ts2, mult=1):
+    "compute kernel distance"
     kernel_corr_val = kernel_corr(ts1, ts2, mult)
     return 2 * (1 - kernel_corr_val)
 

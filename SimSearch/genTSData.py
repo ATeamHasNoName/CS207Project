@@ -1,10 +1,14 @@
 import os, sys
-import TimeSeries as ts
+sys.path.append('../')
 import SimilaritySearch as ss
 import numpy as np
 import shutil
 
 def gen_ts_data(num):
+    "generate given number of random timeseries data"
+    if os.path.isdir('tsData'):
+        shutil.rmtree('tsData')
+    os.mkdir('tsData')
     for i in range(num):
         file_name = 'tsData/ts_data_'+str(i)+'.txt'
         f = open(file_name,'w+')
@@ -14,10 +18,4 @@ def gen_ts_data(num):
     return
 
 if __name__ == "__main__":
-
-    if os.path.isdir('tsData'):
-        shutil.rmtree('tsData')
-
-    os.mkdir('tsData')
-
     gen_ts_data(1000)
