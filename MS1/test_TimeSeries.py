@@ -199,11 +199,11 @@ class TimeSeriesTest(unittest.TestCase):
 	'''abs, bool, neg, pos tests'''		
 
 	def test_abs(self):
-		self.assertEqual(abs(self.series), [(1.5, 1.0), (2, 3.0), (2.5, 0.0), (3, 1.0), (10.5, 1.5)])
+		self.assertEqual(abs(self.series), 3.640054944640259)
 
 	def test_abs_without_time(self):
 		series_notime = TimeSeries(values=[1, 3, 0, -1.5, -1])
-		self.assertEqual(abs(series_notime), [(0, 1.0), (1, 3.0), (2, 0.0), (3, 1.5), (4, 1.0)])
+		self.assertEqual(abs(series_notime), 3.640054944640259)
 
 	# In our context, bool will never be false because of the repOK
 	def test_bool(self):
@@ -217,19 +217,19 @@ class TimeSeriesTest(unittest.TestCase):
 		self.assertTrue(bool(self.singleseries))
 
 	def test_neg(self):
-		self.assertEqual(-self.series, [(1.5, -1), (2, -3), (2.5, 0), (3, 1), (10.5, 1.5)])
+		self.assertEqual(-self.series, TimeSeries(values=[-1, -3, 0, 1.5, 1], times=[1.5, 2, 2.5, 10.5, 3]))
 
 	def test_neg_without_time(self):
 		series_notime = TimeSeries(values=[1, 3, 0, -1.5, -1])
-		self.assertEqual(-series_notime, [(0, -1), (1, -3), (2, 0), (3, 1.5), (4, 1)])
+		self.assertEqual(-series_notime, TimeSeries(values=[-1, -3, 0, 1.5, 1]))
 
 	def test_pos(self):
-		self.assertEqual(+self.series, [(1.5, 1), (2, 3), (2.5, 0), (3, -1), (10.5, -1.5)])
+		self.assertEqual(+self.series, self.series)
 
 	def test_pos_without_time(self):
 		# Actually he same to items
 		series_notime = TimeSeries(values=[1, 3, 0, -1.5, -1])
-		self.assertEqual(+series_notime, series_notime.items())
+		self.assertEqual(+series_notime, series_notime)
 
 	'''eq, add, sub, mul tests'''
 

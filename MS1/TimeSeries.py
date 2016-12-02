@@ -516,10 +516,9 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		>>> v = [4., -5., -6.]
 		>>> z = TimeSeries(v, t)
 		>>> abs(z)
-		[(1.0, 5.0), (2.0, 6.0), (3.0, 4.0)]
+		8.7749643873921226
 		"""
-		abs_vals = np.sqrt([vi * vi for vi in self.valuesseq])
-		return self._tupleWithVals(abs_vals)
+		return np.sqrt(sum([vi * vi for vi in self.valuesseq]))
 		
 	def __bool__(self):
 		"""
@@ -557,10 +556,10 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		>>> v = [4., 5., 6.]
 		>>> z = TimeSeries(v, t)
 		>>> -z
-		[(1.0, -5.0), (2.0, -6.0), (3.0, -4.0)]
+		TimeSeries([(1.0, -5.0), (2.0, -6.0), (3.0, -4.0)])
 		"""
 		neg_vals = [-vi for vi in self.valuesseq]
-		return self._tupleWithVals(neg_vals)
+		return TimeSeries(values=neg_vals, times=self.times())
 		
 	def __pos__(self):
 		"""
@@ -578,9 +577,9 @@ class TimeSeries(SizedContainerTimeSeriesInterface):
 		>>> v = [4., 5., 6.]
 		>>> z = TimeSeries(v, t)
 		>>> +z
-		[(1.0, 5.0), (2.0, 6.0), (3.0, 4.0)]
+		TimeSeries([(1.0, 5.0), (2.0, 6.0), (3.0, 4.0)])
 		"""
-		return self._tupleWithVals(self.valuesseq)
+		return self
 	
 	def _valuesSortedByTime(self, other):
 		"""
