@@ -2,38 +2,53 @@ import os, sys
 import TimeSeries as ts
 import SimilaritySearch as ss
 import numpy as np
-import btreeDB
+import random
+import btreeDB as btreeDB
+import shutil
+
+def load_ts_data(file_name):
+	ts_raw_data = np.loadtxt(file_name, delimiter=' ')
+	ts_data = ts.TimeSeries(ts_raw_data[:,1], ts_raw_data[:,0])
+	return ts_data
+
+def	gen_vps(num):
+	vp_indexes = random.sample(range(1000), num)
+	vps_list = []
+	for i in range(num):
+		file_name = 'tsData/ts_data_'+str(vp_indexes[i])+'.txt'
+		vp_ts = load_ts_data(file_name)
+		std_vp_ts = ss.standarize(vp_ts)
+		vps_list.append(std_vp_ts)
+	return vps_list
+
+
+def save_vp_dbs(num, vps_list):
+
+	for index in range(num):
+		db_name = "vpDB/db_" + str(index) + ".dbdb"
+		db = btreeDB.connect(db_name)
+
+		for i in range(1000):
+			file_name = 'tsData/ts_data_' + str(i) + '.txt'
+			comp_ts = load_ts_data(file_name)
+			std_comp_ts = ss.standarize(comp_ts)
+			dis_to_vp = ss.kernel_dis(vps_list[index], std_comp_ts)
+			db.set(dis_to_vp, file_name)
+
+		db.commit()
+		db.close()
+
+
+def gen_dbs(num):
+	vps = gen_vps(num)
+	save_vp_dbs(num, vps)
+	print("Done.")
+
 
 if __name__ == "__main__":
 
 	if os.path.isdir('vpDB'):
-		pass
-	else:
-		os.mkdir('vpDB')
+		shutil.rmtree('vpDB')
 
-	vp_indexes = np.random.choice(1000,20, replace = False)
-	vp_list= []
-
-	for i in range(20):
-		file_name = 'tsData/ts_data_'+str(vp_indexes[i])+'.txt'
-		db_name = "vpDB/db_"+str(i)+".dbdb"
-		ts_data = np.loadtxt(file_name, delimiter=' ')
-		vp_ts = ts.TimeSeries(ts_data[:,0], ts_data[:,1])
-		std_vp_ts = ss.stand(vp_ts, vp_ts.mean(), vp_ts.std())
-		vp_list.append(std_vp_ts)
-
-	for i in range(1000):
-		file_name = 'tsData/ts_data_'+str(i)+'.txt'
-		ts_data = np.loadtxt(file_name, delimiter=' ')
-		comp_ts = ts.TimeSeries(ts_data[:,1], ts_data[:, 0])
-		std_comp_ts = ss.stand(comp_ts, comp_ts.mean(), comp_ts.std())
-
-		for j in range(20):
-			db_name = "vpDB/db_"+str(j)+".dbdb"
-			db = btreeDB.connect(db_name)
-			dist = ss.kernel_corr(vp_list[j], std_comp_ts)
-
-			db.set(dist, file_name)
-
-			db.commit()
-			db.close()
+	os.mkdir('vpDB')
+	gen_dbs(20)

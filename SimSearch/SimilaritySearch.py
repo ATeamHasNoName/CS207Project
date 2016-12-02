@@ -16,17 +16,22 @@ def random_ts(a):
 
 def stand(x, m, s):
     "standardize timeseries x by mean m and std deviation s"
-    vals = np.array(list(x.itervalues()))
-    vals = (vals - m)/s
-    return ts.TimeSeries(vals, list(x.itertimes()))
+    return ts.TimeSeries((x.values() - m) / s, x.times())
 
+def standarize(x):
+    """
+    standardize function
+    :param: timeseries
+    :return: standardized timeseries by mean and deviation
+    """
+    return stand(x, x.mean(), x.std())
 
 def ccor(ts1, ts2):
     "given two standardized time series, compute their cross-correlation using FFT"
-    f1 = fft(list(ts1))
-    f2 = fft(np.flipud(list(ts2)))
-    cc = np.real(ifft(f1 * f2))
-    return fftshift(cc)/len(ts1)
+    f1 = fft(ts1.values())
+    f2 = np.conjugate(fft(ts2.values()))
+    cc = ifft(f1 * f2).real
+    return cc/(1.0 * len(ts1))
 
 
 
@@ -50,7 +55,9 @@ def kernel_corr(ts1, ts2, mult=1):
     Kyy = np.sum(np.exp(mult * ccor(ts2, ts2)))
     return Kxy / np.sqrt(Kxx * Kyy)
 
-
+def kernel_dis(ts1, ts2, mult=1):
+    kernel_corr_val = kernel_corr(ts1, ts2, mult)
+    return 2 * (1 - kernel_corr_val)
 
 #this is for a quick and dirty test of these functions
 if __name__ == "__main__":
