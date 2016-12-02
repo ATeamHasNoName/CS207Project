@@ -1,4 +1,5 @@
 # cs207project
+MS 1 and MS 2
 
 [![Build Status](https://travis-ci.org/ATeamHasNoName/CS207Project.svg?branch=master)](https://travis-ci.org/ATeamHasNoName/CS207Project)
 
