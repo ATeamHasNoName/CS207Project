@@ -11,7 +11,7 @@ service = APIService()
 @app.route('/')
 def home():
     # tasks = service.all_tasks()
-    timeseries = service.timeseries_metadata
+    timeseries = service.timeseries_metadata()
     return render_template('index.html', timeseries=timeseries)
 
 @app.route('/remove_task', methods=['POST'])
