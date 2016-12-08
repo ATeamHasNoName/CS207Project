@@ -1,3 +1,5 @@
+psql -d ubuntu -U ubuntu
+
 CREATE TYPE level AS ENUM ('A', 'B', 'C', 'D', 'E', 'F');
 CREATE TABLE timeseries (
     id integer PRIMARY KEY,
