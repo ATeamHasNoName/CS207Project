@@ -3,3 +3,4 @@ TimeSeries.ipynb
 .cache/*
 *.pyc
 *.txt
+*.pem
