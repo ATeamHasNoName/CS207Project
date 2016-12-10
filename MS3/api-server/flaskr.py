@@ -160,6 +160,10 @@ def create_timeseries():
     log.info(values)
     mean = np.mean(values)
     std = np.std(values, ddof=1)
+    # To safeguard against timeseries with only one value which will return NaN std, we set std to 0 if it is NaN
+    if np.isnan(std):
+        std = 0.0
+
     # Draw blarg from a random uniform distribution of [0,1]
     blarg = np.random.uniform(0, 1)
     # Draw level from a random dice from 'A', 'B', 'C', 'D', 'E', 'F'
