@@ -1,4 +1,7 @@
 import logging
+import numpy as np
+import random
+import sys
 from flask import Flask, request, abort, jsonify, make_response
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder
@@ -29,13 +32,26 @@ db = SQLAlchemy(app)
 
 
 class TimeSeriesModel(db.Model):
-    __tablename__ = 'timeseries'
+    '''
+    Here is the corresponding PostgreSQL code:
 
-    tid = db.Column(db.Integer, primary_key=True)
+    CREATE TYPE level AS ENUM ('A', 'B', 'C', 'D', 'E', 'F');
+    CREATE TABLE timeseries (
+        tid CHAR(32) PRIMARY KEY,
+        mean float(16) NOT NULL,
+        std float(16) NOT NULL,
+        blarg float(16) NOT NULL,
+        level level NOT NULL 
+    );
+
+    '''
+    __tablename__ = 'timeseries'
+    # Timeseries ID could be a string of up to length 32, not just restricted to Int
+    tid = db.Column(db.String(32), primary_key=True) 
     mean = db.Column(db.Float, nullable=False)
     std = db.Column(db.Float, nullable=False)
     blarg = db.Column(db.Float, nullable=False)
-    level = db.Column(db.Enum('A', 'B', 'C', 'D', 'E', 'F'), nullable=False)
+    level = db.Column(db.Enum('A', 'B', 'C', 'D', 'E', 'F', name='level'), nullable=False)
 
     def __repr__(self):
         return '<Timeseries %r>' % self.tid
@@ -43,28 +59,37 @@ class TimeSeriesModel(db.Model):
     def to_dict(self):
         return dict(tid=self.tid, mean=self.mean, std=self.std, blarg=self.blarg, level=self.level)
 
-
-class Task(db.Model):
-    __tablename__ = 'tasks'
-
-    task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    action = db.Column(db.String(80), nullable=False)
-
-
-    def __repr__(self):
-        return '<User %r>' % self.task_id
-
-    def to_dict(self):
-        return dict(action=self.action, task_id=self.task_id)
-
 """
 Timeseries code
 """
 
+def _split_range(in_query):
+    '''
+    Takes in string of in_query, and returns the lower and upper limit of the range in a tuple
+    Both lower and upper limit should be defined
+    Returns None if in_query is malformed
+    '''
+    limits = in_query.split('-')
+    if len(limits) != 2: # Query should have both a lower and upper limit
+        return None, None
+    try:
+        lower = float(limits[0])
+        upper = float(limits[1])
+        return lower, upper
+    except ValueError:
+        return None, None
+
+def _split_level(level_in_query):
+    '''
+    Takes in string of level_in_query, and returns the tuple form
+    If empty no comma, treat the whole string as a level, which has similar behavior to "level equals" param
+    '''
+    levels = level_in_query.split(',')
+    return tuple(levels)
+
 @app.route('/timeseries', methods=['GET'])
-def get_timeseries_metadata():
-    # First check if there are queries
-    # Extra credit? Support multiple queries at a time
+def get_timeseries():
+    # Extra credit: Support multiple queries at a time
     
     # Continuous variables only support in
     mean_in = request.args.get('mean_in')
@@ -74,15 +99,51 @@ def get_timeseries_metadata():
     # Discrete variables support in and equals
     level_in = request.args.get('level_in')
     level = request.args.get('level')
-    # If both provided, choose level as it is a stronger option
-
-    # Write SQL statements to get from DB
     
-    # Send json of all meta data if no range
-    return jsonify({'tid': 'metadata'}), 200
+    maxf = sys.maxsize
+    minf = -sys.maxsize - 1    
+    # Query for all ranges by default so we can support multiple queries
+    mean_lower, mean_upper = minf, maxf
+    std_lower, std_upper = minf, maxf
+    blarg_lower, blarg_upper = minf, maxf
+
+    if mean_in is not None:
+        mean_lower, mean_upper = _split_range(mean_in)
+        if mean_lower is None:
+            abort(400)
+    if std_in is not None:
+        std_lower, std_upper = _split_range(std_in)
+        if std_lower is None:
+            abort(400)
+    if blarg_in is not None:
+        blarg_lower, blarg_upper = _split_range(blarg_in)
+        if blarg_in is None:
+            abort(400)
+
+    # By default search for all levels
+    levels = ('A', 'B', 'C', 'D', 'E', 'F')
+    # If both provided, choose level as it is a stronger option
+    if level is not None:
+        levels = (level, level) # Need at least two elements to make it a tuple
+    elif level_in is not None:
+        levels = _split_level(level_in)
+
+    timeseries_queried = TimeSeriesModel.query.filter(
+        TimeSeriesModel.mean>mean_lower).filter(
+        TimeSeriesModel.mean<mean_upper).filter(
+        TimeSeriesModel.std>std_lower).filter(
+        TimeSeriesModel.std<std_upper).filter(
+        TimeSeriesModel.blarg>blarg_lower).filter(
+        TimeSeriesModel.blarg<blarg_upper).filter(
+        TimeSeriesModel.level.in_(levels)).all()
+
+    log.info('Queried these timeseries metadata: ', timeseries_queried)
+
+    return jsonify(dict(metadata=timeseries_queried))
 
 @app.route('/timeseries', methods=['POST'])
 def create_timeseries():
+    log.info("we're here in timeseries")
     # Request must be a JSON object that has the keys: tid and timeseries
     if (not request.json or not 'id' in request.json or not 'timeseries' in request.json):
         abort(400)
@@ -91,122 +152,77 @@ def create_timeseries():
     timeseries = request.json['timeseries']
     if not isinstance(timeseries, dict):
         abort(400)
-    # TODO: Store it in DBs
-    return jsonify(timeseries), 201
-
-@app.route('/timeseries/<int:tid>', methods=['GET'])
-def get_timeseries_by_key(tid):
-    # Send back metadata and time series data in a JSON
-    return 'Return timeseries %d\n' % tid, 200
-
-@app.route('/simquery', methods=['GET'])
-def get_topk_similar_ids():
-    '''
-    Get top k similar time series with respect to the input id in the query string
-    '''
-    tid = request.args.get('id')
-    topk = request.args.get('k')
-    if topk is None or not isinstance(topk, int):
-        # If k not provided, default to finding top 5 similar timeseries to tid
-        topk = 5
-
-    return 'Return timeseries %d\n' % tid, 200
-
-@app.route('/simquery', methods=['POST'])
-def get_topk_similar_ids_from_json():
-    '''
-    Get top k similar time series with respect to the input time series in JSON form in 
-    the POST body.
-    '''
-    if (not request.json or not 'timeseries' in request.json):
-        abort(400)
-    # Timeseries is dictionary/JSON of the format of {'key': value}
-    timeseries = request.json['timeseries']
-    if not isinstance(timeseries, dict):
-        abort(400)
-    topk = request.json['k']
-    if topk is None or not isinstance(topk, int):
-        # If k not provided, default to finding top 5 similar timeseries to tid
-        topk = 5
-    return 'Return top %d time series\n' % topk, 200
-
-
-"""
-Deprecated code for tasks
-"""
-
-@app.route('/tasks', methods=['GET'])
-def get_all_tasks():
-    log.info('Getting all Tasks')
-    return jsonify(dict(tasks=Task.query.all()))
-
-
-@app.route('/tasks/<int:task_id>', methods=['GET'])
-def get_task_by_id(task_id):
-    task = Task.query.filter_by(task_id=task_id).first()
-    if task is None:
-        log.info('Failed to get Task with task_id=%s', task_id)
-        abort(404)
-    log.info('Getting Task with task_id=%s', task_id)
-    return jsonify({'task': task})
-
-
-@app.route('/tasks', methods=['POST'])
-def create_task():
-    if not request.json or 'action' not in request.json:
-        abort(400)
-    log.info('Creating Task with action=%s', request.json['action'])
-    prod = Task(action=request.json['action'])
+    
+    # Get timeseries metadata and store it in PostgreSQL
+    
+    # Grab all the values of the timeseries
+    values = list(timeseries.values())
+    log.info(values)
+    mean = np.mean(values)
+    std = np.std(values, ddof=1)
+    # Draw blarg from a random uniform distribution of [0,1]
+    blarg = np.random.uniform(0, 1)
+    # Draw level from a random dice from 'A', 'B', 'C', 'D', 'E', 'F'
+    levels = ['A', 'B', 'C', 'D', 'E', 'F']
+    level = random.choice(levels)
+    prod = TimeSeriesModel(tid=tid, mean=mean, std=std, blarg=blarg, level=level)
     db.session.add(prod)
     db.session.commit()
-    return jsonify({'op': 'OK', 'task': prod}), 201
+    
+    # TODO: Store new time series in disk as well, and update vantage points
+    
+    # Returns the timeseries in JSON format
+    return jsonify(timeseries), 201
 
+@app.route('/timeseries/<string:tid>', methods=['GET'])
+def get_timeseries_with_id(tid):
+    # Return the timeseries metadata for this id
+    timeseries = TimeSeriesModel.query.filter_by(tid=tid).first()
 
-@app.route('/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    if not request.json or 'action' not in request.json:
-        log.info('Could not update. Invalid params')
-        abort(400)
-
-    task = Task.query.filter_by(task_id=task_id).first()
-    if task is None:
-        log.info('Could not find Task id=%s to update', task_id)
+    if timeseries is None:
+        log.info('Failed to get Timeseries with id=%s', tid)
         abort(404)
+    log.info('Getting Timeseries with id=%s', tid)
 
-    action = request.json['action']
-    log.info('Updating Task id=%s with action %s', task_id, action)
-    task.action = action
-    db.session.commit()
-    return jsonify({'op': 'OK', 'task': task}), 201
+    # TODO: Also returns this timeseries' from disk
+    
+    return jsonify({'metadata': timeseries, 'timeseries': ''})
 
+# @app.route('/simquery', methods=['GET'])
+# def get_topk_similar_ids():
+#     '''
+#     Get top k similar time series with respect to the input id in the query string
+#     '''
+#     tid = request.args.get('id')
+#     topk = request.args.get('k')
+#     if topk is None or not isinstance(topk, int):
+#         # If k not provided, default to finding top 5 similar timeseries to tid
+#         topk = 5
 
-@app.route('/tasks/<int:task_id>', methods=['DELETE'])
-def remove_task(task_id):
-    task = Task.query.filter_by(task_id=task_id).first()
-    if task is None:
-        abort(404)
+#     return 'Return timeseries %d\n' % tid, 200
 
-    log.info('Deleting Task with id=%s', task_id)
-    db.session.delete(task)
-    db.session.commit()
-    return jsonify({'op': 'OK'})
-
-
-@app.route('/tasks', methods=['DELETE'])
-def remove_all_tasks():
-    tasks = Task.query.all()
-    for task in tasks:
-        db.session.delete(task)
-
-    log.info('Deleted all Tasks!')
-    db.session.commit()
-    return jsonify({'op': 'OK'})
+# @app.route('/simquery', methods=['POST'])
+# def get_topk_similar_ids_from_json():
+#     '''
+#     Get top k similar time series with respect to the input time series in JSON form in 
+#     the POST body.
+#     '''
+#     if (not request.json or not 'timeseries' in request.json):
+#         abort(400)
+#     # Timeseries is dictionary/JSON of the format of {'key': value}
+#     timeseries = request.json['timeseries']
+#     if not isinstance(timeseries, dict):
+#         abort(400)
+#     topk = request.json['k']
+#     if topk is None or not isinstance(topk, int):
+#         # If k not provided, default to finding top 5 similar timeseries to tid
+#         topk = 5
+#     return 'Return top %d time series\n' % topk, 200
 
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
