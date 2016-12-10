@@ -9,16 +9,11 @@ sys.path.append('../../MS1/')
 from TimeSeries import TimeSeries
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
-
 ARGUMENTS = 5
 BUFFERSIZE = 65536
 TIMEOUTLENGTH = 30
 
-# Restricting user from leaving the chatroom by typing CRL + Z or CRL + C. He has to type 'leave':
-#signal.signal(signal.SIGINT, signal.SIG_IGN)
-#signal.signal(signal.SIGTSTP, signal.SIG_IGN)
-
-def ChatClient():
+def Client():
     if(len(sys.argv) < ARGUMENTS):
         print ('You typed in too few arguments.\n Please use the format: python client.py IP_ADDRESS PORT_NUMBER TS_OR_ID VALUE\n')
         e()
@@ -94,9 +89,6 @@ def readCommandLine():
     filename = str(sys.argv[4])
     return host, port, ts_or_id, filename
 
-def binaryLength16(length):
-    return format(length, '016b')
-
 def binaryLength32(length):
     return format(length, '032b')
 
@@ -147,4 +139,4 @@ def ts_to_json(ts):
     return rs
 
 if __name__ == "__main__":
-    exit(ChatClient())
+    exit(Client())
