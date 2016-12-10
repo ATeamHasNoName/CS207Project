@@ -18,7 +18,7 @@ class APIService(object):
 		if json_response:
 			log.debug('Response body %s', json_response)
 			return json_response
-		raise ValueError('no tasks found')
+		raise ValueError('no timeseries found')
 
 	def create_timeseries(self, tid, timeseries):
 		endpoint = 'http://{}:{}/timeseries'.format(self.url, self.port)
@@ -35,4 +35,28 @@ class APIService(object):
 		if json_response:
 			log.debug('Response body %s', json_response)
 			return json_response
-		raise ValueError('no tasks found')
+		raise ValueError('no timeseries found')
+
+	def get_simquery(self, tid, k):
+		endpoint = 'http://{}:{}/simquery'.format(self.url, self.port)
+		# Pass in k and timeseries id in the params
+		response = requests.get(endpoint, params={'k': k, 'id': tid})
+		# If input tid is not in data store, return error
+		if response.status_code in [400]:
+			raise ValueError('Input tid is not in data store')
+		json_response = response.json()
+		if json_response:
+			log.debug('Response body %s', json_response)
+			return json_response
+		raise ValueError('no timeseries found')
+
+	def post_simquery(self, timeseries, k):
+		endpoint = 'http://{}:{}/simquery'.format(self.url, self.port)
+		# Pass in k and timeseries json object in the body
+		response = requests.post(endpoint, json={'k': k, 'timeseries': timeseries})
+		json_response = response.json()
+		if json_response:
+			log.debug('Response body %s', json_response)
+			return json_response
+		raise ValueError('no timeseries found')
+
