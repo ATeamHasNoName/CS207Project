@@ -14,9 +14,10 @@ BUFFERSIZE = 65536
 TIMEOUTLENGTH = 3
 
 def Client():
+
     if(len(sys.argv) < ARGUMENTS):
         print ('You typed in too few arguments.\n Please use the format: python client.py IP_ADDRESS PORT_NUMBER TS_OR_ID VALUE\n')
-        exit(2)
+        return 2
 
     host, port, ts_or_id, filename = readCommandLine()
 
@@ -38,7 +39,7 @@ def Client():
         s.connect((host, port))
     except :
         print( 'Cannot connect to the server. IP address provided or port number might be wrong or host is not up.\n')
-        e(3)
+        return 3
 
     ts_to_json_LengthBinary = binaryLength32(len(ts_json))
     # Format sent to server is:
@@ -71,8 +72,6 @@ def Client():
                 s.shutdown(socket.SHUT_RDWR)
                 s.close()
                 sys.exit()
-def e(val):
-    exit(val)
 
 def readCommandLine():
     host = sys.argv[1]
@@ -82,6 +81,23 @@ def readCommandLine():
     return host, port, ts_or_id, filename
 
 def binaryLength32(length):
+    '''
+    Returns the binary length of string.
+
+	Parameters
+	----------
+	length: the length of the string 
+	
+	Returns
+	-------
+	the length of the string in 32 bit binary
+
+	>>> st = "CS207"
+	>>> st_length = len(st)
+	>>> st_binary_length = binaryLength32(st_length)
+	>>> st_binary_length
+	'00000000000000000000000000000101'
+    '''
     return format(length, '032b')
 
 def load_ts_file(filepath):
@@ -97,7 +113,6 @@ def load_ts_file(filepath):
 	timeSeries object : TimeSeries class
 
 	>>> ts=load_ts_file('input.txt')
-
 	>>> ts.values()[0]
 	15.137
     '''
@@ -122,13 +137,29 @@ def load_ts_file(filepath):
     return full_ts_interpolated
 
 def ts_to_json(ts):
-    times=ts.times()
-    vals=ts.values()
-    lst=[]
-    for i in range(len(vals)):
-        lst.append((times[i],vals[i]))
-        rs = json.dumps(dict(lst))
-    return rs
+	'''
+	Takes in TimeSeries and converts it to JSON
+
+		Parameters
+		----------
+		ts: TimeSeries to take in
+	
+		Returns
+		-------
+		JSON of timeseries
+
+		>>> ts = TimeSeries([1,2,3],[4,5,6])
+		>>> json = ts_to_json(ts)
+		>>> json
+		'{"4": 1, "5": 2, "6": 3}'
+	'''
+	times=ts.times()
+	vals=ts.values()
+	lst=[]
+	for i in range(len(vals)):
+		lst.append((times[i],vals[i]))
+		rs = json.dumps(dict(lst))
+	return rs
 
 if __name__ == "__main__":
     exit(Client())

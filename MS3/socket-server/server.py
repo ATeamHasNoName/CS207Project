@@ -42,6 +42,7 @@ def Server():
     while True:
         empty = []
 
+        # Used for testing purposes:
         if TEST > 0:
             wait_count += 1        
         if (TEST > 0 and wait_count == 100000):
