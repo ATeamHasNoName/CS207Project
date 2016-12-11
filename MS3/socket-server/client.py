@@ -11,7 +11,7 @@ from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 ARGUMENTS = 5
 BUFFERSIZE = 65536
-TIMEOUTLENGTH = 30
+TIMEOUTLENGTH = 3
 
 def Client():
     if(len(sys.argv) < ARGUMENTS):
@@ -47,7 +47,7 @@ def Client():
     # value of id or ts            [Starts at byte number 34]
     sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + ts_json
 
-    if (ts_or_id == 0):
+    if (int(ts_or_id) == 0):
         print("Sending id to server")
     else:
         print("Sending TimeSeries to server")
@@ -74,14 +74,6 @@ def Client():
 def e():
     exit(0)
 
-def f():
-    sys.stdout.flush()
-
-def clear():
-    CURSOR_UP_ONE = '\x1b[1A'
-    ERASE_LINE = '\x1b[2K'
-    print(ERASE_LINE + CURSOR_UP_ONE)
-
 def readCommandLine():
     host = sys.argv[1]
     port = int(sys.argv[2])
@@ -104,9 +96,9 @@ def load_ts_file(filepath):
 	-------
 	timeSeries object : TimeSeries class
 
-	>>> ts=load_ts_file('169975.dat_folded.txt')
+	>>> ts=load_ts_file('input.txt')
 
-	>>> ts._values[0]
+	>>> ts.values()[0]
 	15.137
     '''
 

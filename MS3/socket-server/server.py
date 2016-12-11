@@ -3,6 +3,7 @@ import threading
 import socket
 import select
 import binascii
+import time
 
 TIMEOUT = 30
 SOCKETS = []
@@ -20,6 +21,9 @@ def Server():
     HOST = sys.argv[1]
     PORT = int(sys.argv[2])
     
+    TEST = 0
+    if sys.argv[3]:
+        TEST = int(sys.argv[3])
     # Set up host socket:
     hostSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     hostSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -32,11 +36,17 @@ def Server():
     SOCKETS.append(hostSocket)
     
     print ("A brand new server has fired up using port: " + str(PORT) + "!\n")
-    
+
+    wait_count = 0
     # Listen to potential incoming sockets:
     while True:
         empty = []
-        
+
+        if TEST > 0:
+            wait_count += 1        
+        if (TEST > 0 and wait_count == 100000):
+           e()
+
         # Fetch incoming sockets:
         incomingSockets,w,err = select.select(SOCKETS,empty,empty,0)
 
@@ -75,10 +85,12 @@ def Server():
                 except:
                     continue
 
-    hostSocket.close()
+
+    #hostSocket.close()
 
 def e():
     exit(0)
 
 if __name__ == "__main__":
     sys.exit(Server())
+
