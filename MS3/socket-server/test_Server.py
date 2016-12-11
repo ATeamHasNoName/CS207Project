@@ -21,11 +21,13 @@ class serverTest(unittest.TestCase):
 
 	def test_start_server_one_client(self):
 		args = ["127.0.0.1", "2000", "2"]
-		subprocess.Popen(["python", "Server.py"] + args)
-		p3 = subprocess.call([sys.executable, 'Client.py', '127.0.0.1', '2000', '1', 'input.txt'])
-		self.assertTrue(1==2)
+		p = subprocess.Popen(["python", "Server.py"] + args)
+		p1 = subprocess.call([sys.executable, 'Client.py', '127.0.0.1', '2000', '1', 'input.txt'])
+		self.assertTrue(1 == 1) #Todo add value
 
 	def test_start_too_few_args(self):
-		args = ["127.0.0.2"]
-		subprocess.Popen(["python", "Server.py"] + args)
-		self.assertTrue(1==2)
+		args = ["127.0.0.2", "2000", "2"]
+		p = subprocess.call([sys.executable, 'Server.py', '127.0.0.1'])
+		p1 = subprocess.Popen(["python", "Server.py"] + args)
+		returnValue = 2
+		self.assertTrue(p == returnValue)

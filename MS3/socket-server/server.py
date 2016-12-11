@@ -15,7 +15,7 @@ def Server():
     
     if(len(sys.argv) < ARGUMENTS):
         print ('You typed in too few arguments.\n Please use the format: python server.py IP_ADDRESS PORT_NUMBER\n')
-        e()
+        e(2)
     
     # Get port number from input:
     HOST = sys.argv[1]
@@ -45,7 +45,7 @@ def Server():
         if TEST > 0:
             wait_count += 1        
         if (TEST > 0 and wait_count == 100000):
-           e()
+           e(0)
 
         # Fetch incoming sockets:
         incomingSockets,w,err = select.select(SOCKETS,empty,empty,0)
@@ -88,8 +88,8 @@ def Server():
 
     #hostSocket.close()
 
-def e():
-    exit(0)
+def e(val):
+    exit(val)
 
 if __name__ == "__main__":
     sys.exit(Server())

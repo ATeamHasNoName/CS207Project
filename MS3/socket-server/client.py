@@ -16,7 +16,7 @@ TIMEOUTLENGTH = 3
 def Client():
     if(len(sys.argv) < ARGUMENTS):
         print ('You typed in too few arguments.\n Please use the format: python client.py IP_ADDRESS PORT_NUMBER TS_OR_ID VALUE\n')
-        e()
+        exit(2)
 
     host, port, ts_or_id, filename = readCommandLine()
 
@@ -38,7 +38,7 @@ def Client():
         s.connect((host, port))
     except :
         print( 'Cannot connect to the server. IP address provided or port number might be wrong or host is not up.\n')
-        e()
+        e(3)
 
     ts_to_json_LengthBinary = binaryLength32(len(ts_json))
     # Format sent to server is:
@@ -71,8 +71,8 @@ def Client():
                 s.shutdown(socket.SHUT_RDWR)
                 s.close()
                 sys.exit()
-def e():
-    exit(0)
+def e(val):
+    exit(val)
 
 def readCommandLine():
     host = sys.argv[1]
