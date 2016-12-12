@@ -1,9 +1,8 @@
 import numpy as np
 import sys
 import os
-sys.path.append('./DB/')
-from WrappedDB import WrappedDB
-sys.path.append('../../MS1/')
+from WrappedDB import *
+sys.path.append('../MS1/')
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 from TimeSeries import TimeSeries
 
