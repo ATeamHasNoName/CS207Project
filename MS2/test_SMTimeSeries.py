@@ -17,23 +17,25 @@ class SMTimeSeriesTest(unittest.TestCase):
 		self.values=[1, 3, 0, 1.5, 1]
 		self.times=[1, 2, 4, 5, 10]
 		self.key = "313"
-		self.dbname = "SM_DB.dbdb"
-		self.DB = WrappedDB(self.dbname)
+		self.key2 = "7"
+		self.DB = WrappedDB()
 		self.ts1 = TimeSeries(self.values, self.times)
 		self.ts2 = TimeSeries([1, 2, 3],[0, 5, 10])
 		self.smt1 = SMTimeSeries(self.values, self.times, self.key)
-		self.smt2 = SMTimeSeries([0, 5, 10], [1, 2, 3], "7")
+		self.smt2 = SMTimeSeries([0, 5, 10], [1, 2, 3], self.key2)
 		
 	def tearDown(self):
+		os.remove("ts_" + self.key + ".dbdb")
+		os.remove("ts_" + self.key2 + ".dbdb")
 		del self.values
 		del self.times
 		del self.key
+		del self.key2
 		del self.DB
 		del self.ts1
 		del self.ts2
 		del self.smt1
 		del self.smt2
-		os.remove(self.dbname)
 
 	# Note that these tests are run in sequential order
 
@@ -41,16 +43,19 @@ class SMTimeSeriesTest(unittest.TestCase):
 		self.assertTrue(type(self.smt1) is SMTimeSeries)
 
 	def test_from_db_with_key(self):
-		self.DB.storeKeyAndTimeSeries(key = self.key, timeSeries = self.ts1)
-		timeSeriesFromDB = self.smt1.from_db(self.key, self.dbname)
+		key = "123"
+		self.DB.storeKeyAndTimeSeries(key = key, timeSeries = self.ts1)
+		timeSeriesFromDB = self.smt1.from_db(self.key)
 		# Check if the fetched SMTimeSeries is the same class as was instantiated:
-		self.assertTrue(timeSeriesFromDB == self.ts1)		
+		self.assertTrue(timeSeriesFromDB == self.ts1)
+		os.remove("ts_" + str(key) + ".dbdb")
 
 	def test_from_db_without_key(self):
-		self.DB.storeKeyAndTimeSeries(key = self.key, timeSeries = self.ts1)
-		timeSeriesFromDB = self.smt1.from_db(None, self.dbname)
-		# Check if the fetched SMTimeSeries is the same class as was instantiated:
-		self.assertRaises(Exception,"Key is not in Database\n")
+		key = "123"
+		self.DB.storeKeyAndTimeSeries(key = key, timeSeries = self.ts1)
+		timeSeriesFromDB = self.smt1.from_db("12345")
+		self.assertTrue(timeSeriesFromDB is None)
+		os.remove("ts_" + str(key) + ".dbdb")
 
 	"""
 	Tests for the delegation methods:

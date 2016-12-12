@@ -1,18 +1,1 @@
-{
-  "test_DB.py": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_with_key": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_from_db_without_key": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_getitem": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_init_SMTimeSeries": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_items": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_iter": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_iteritems": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_itertimes": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_itervalues": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_len": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_mean": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_setitem": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_std": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_times": true,
-  "test_SMTimeSeries.py::SMTimeSeriesTest::test_values": true
-}
+{}

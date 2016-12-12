@@ -25,16 +25,17 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 		-------
 		None
 	
-		>>> smts = SMTimeSeries([1.5, 2,6,8,9], [1, 3, 0, 1.5, 10])
+		>>> smts = SMTimeSeries([1.5, 2,6,8,9], [1, 3, 0, 1.5, 10], key = "1")
 		>>> type(smts)
 		<class 'SMTimeSeries.SMTimeSeries'>
+		>>> os.remove("ts_1.dbdb")
 		"""
 
-		self.DB = WrappedDB("SM_DB.dbdb")
+		self.DB = WrappedDB()
 		self.timeSeries = TimeSeries(values, times)
 		self.key = self.DB.storeKeyAndTimeSeries(key = key, timeSeries = self.timeSeries)
 
-	def from_db(self, key, database):
+	def from_db(self, key):
 		"""
 		Looks up a Time Series with identifier key and returns it.
 		
@@ -45,27 +46,9 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 		Returns
 		-------
 		None
-
-		>>> DB = WrappedDB("SM_DB.dbdb")
-		>>> key = "7"
-		>>> values = [1.5, 2, 2.5, 3, 10.5];
-		>>> times = [1,3,0,1.5,19];
-		>>> ts = TimeSeries(values, times)
-		>>> smts = SMTimeSeries(values, times, key)
-		>>> key = DB.storeKeyAndTimeSeries(key = key, timeSeries = ts)
-		>>> timeSeriesFromDB = smts.from_db(key, "SM_DB.dbdb")
-		>>> timeSeriesFromDB
-		TimeSeries([(0.0, 2.5), (1.0, 1.5), (1.5, 3.0), (3.0, 2.0), (19.0, 10.5)])
-		>>> os.remove("SM_DB.dbdb")
 		"""
-
-		if (key == None):
-			print("Key is not in Database\n")
-			return KeyError
-
 		self.key = key
-		self.DB = WrappedDB(database)
-	
+		self.DB = WrappedDB()
 		return self.DB.getTimeSeries(self.key)
 
 	# Required functions according to the SizedContainerTimeSeriesInterface:
