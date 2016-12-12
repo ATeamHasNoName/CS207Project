@@ -1,5 +1,1 @@
-{
-  "MS3/api-server/test_flaskr.py": true,
-  "MS3/socket-server/test_Client.py": true,
-  "MS3/socket-server/test_Server.py": true
-}
+{}
