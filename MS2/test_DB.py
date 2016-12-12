@@ -4,7 +4,7 @@ from DB import *
 import sys
 import pickle
 import base64
-sys.path.append('../../MS1/')
+sys.path.append('../MS1/')
 from TimeSeries import TimeSeries
 
 # py.test --doctest-modules  --cov --cov-report term-missing DB.py test_DB.py
