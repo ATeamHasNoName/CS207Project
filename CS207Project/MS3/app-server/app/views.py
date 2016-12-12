@@ -6,9 +6,10 @@ from flask import render_template, send_from_directory
 from flask import Flask, request, abort, redirect, url_for, jsonify, make_response
 
 import sys
-sys.path.append('../../../'); from TSDBSerialize import Serialize
-sys.path.append('../../../MS2/'); from FileStorageManager import FileStorageManager
-sys.path.append('../../../MS1/'); from TimeSeries import TimeSeries
+
+sys.path.append(os.path.abspath("../")); from TSDBSerialize import Serialize
+sys.path.append(os.path.abspath("../../MS2")); from FileStorageManager import FileStorageManager
+sys.path.append(os.path.abspath("../../MS1")); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
 service = APIService()

@@ -1,9 +1,10 @@
 import json
 import sys
+import os
 try:
-	sys.path.append('../../MS1/'); from TimeSeries import TimeSeries 
+	sys.path.append(os.path.abspath('../../MS1/')); from TimeSeries import TimeSeries 
 except ImportError:
-	sys.path.append('../MS1/'); from TimeSeries import TimeSeries 
+	sys.path.append(os.path.abspath('../MS1/')); from TimeSeries import TimeSeries 
 
 class Serialize:
 	"""
@@ -21,28 +22,8 @@ class Serialize:
 			rs = json.dumps(dict(lst))
 		# Convert JSON string to JSON object
 		return json.loads(rs)
-		
-	def json_to_bytes(self,json):
-		"""
-		Takes in JSON object, converts it to bytes
-		"""
-		return bytes(l, encoding='utf-8')
 
-	# Note: Bytes to JSON is a two step process, first call bytes_to_json, then call load_json_dict to get JSON object
-	def bytes_to_json(self,bytedata):
-		"""
-		Takes in bytes, converts it to JSON data
-		"""
-		return bytedata.decode('utf-8')
-
-	def load_json_dict(self,jsondata):
-		"""
-		Takes in JSON data, and converts it to JSON object
-		"""
-		jsondict=json.loads(jsondata)
-		return jsondict
-
-	def jsondict_to_ts(self,jsondict):
+	def json_to_ts(self,jsondict):
 		"""
 		Takes in JSON object, and converts it into TimeSeries
 		"""
@@ -53,3 +34,17 @@ class Serialize:
 			vreconstruct.append(float(jsondict[key]))
 		tsreconstruct=TimeSeries(values=vreconstruct,times=treconstruct)
 		return tsreconstruct
+		
+	def json_to_bytes(self,jsondict):
+		"""
+		Takes in JSON object, converts it to bytes
+		"""
+		# Need to first convert jsondict to json string
+		return bytes(json.dumps(jsondict), encoding='utf-8')
+
+	def bytes_to_json(self,bytedata):
+		"""
+		Takes in bytes, converts it to JSON object
+		"""
+		return json.loads(bytedata.decode('utf-8'))
+

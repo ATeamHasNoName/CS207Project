@@ -182,7 +182,7 @@ def create_timeseries():
 	fsm = FileStorageManager()
 	serialize = Serialize()
 	# Convert the JSON object to a TimeSeries object to store it in FSM
-	timeseriesObject = serialize.jsondict_to_ts(timeseries)
+	timeseriesObject = serialize.json_to_ts(timeseries)
 	fsm.store(timeSeries=timeseriesObject, key=tid)
 	
 	return jsonify(timeseries), 201
