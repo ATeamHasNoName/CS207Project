@@ -16,7 +16,7 @@ class FileStorageManager(StorageManagerInterface):
 
 	def __init__(self):
 		"""
-		Initializes a FileStorageManager instance with a filename to store entries to disk.
+		Initializes a FileStorageManager to store entries to disk.
 		Cache size can be changed in initializing WrappedDB.
 
 		Parameters
