@@ -5,6 +5,11 @@ from app.service import APIService
 from flask import render_template, send_from_directory
 from flask import Flask, request, abort, redirect, url_for, jsonify, make_response
 
+import sys
+sys.path.append('../../../'); from TSDBSerialize import Serialize
+sys.path.append('../../../MS2/'); from FileStorageManager import FileStorageManager
+sys.path.append('../../../MS1/'); from TimeSeries import TimeSeries
+
 log = logging.getLogger(__name__)
 service = APIService()
 
@@ -74,7 +79,22 @@ def get_simquery():
 	if k is None or not isinstance(k, int):
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
-	response = service.get_simquery(tid, k)
+
+	# TODO: Send to socket server
+	
+	# Grab time series from FSM
+	fsm = FileStorageManager()
+	serialize = Serialize()
+	timeseriesObject = fsm.get(key=tid)
+
+	# Serialize and send to socket server
+	timeseriesJSON = serialize.ts_to_json(timeseriesObject)
+	timeseriesBytes = serialize.json_to_bytes(timeseriesJSON)
+
+	log.info("Time series bytes in tid:")
+	log.info(timeseriesBytes)
+	
+	# response = service.get_simquery(tid, k)
 	return jsonify(response), 200
 
 @app.route('/simquery', methods=['POST'])
@@ -93,7 +113,15 @@ def post_simquery():
 	if k is None or not isinstance(k, int):
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
-	response = service.post_simquery(timeseries, k)
+
+	# TODO: Serialize and send to socket server
+	serialize = Serialize()
+	timeseriesBytes = serialize.json_to_bytes(timeseries)
+
+	log.info("Time Series Bytes:")
+	log.info(timeseriesBytes)
+
+	# response = service.post_simquery(timeseries, k)
 	return jsonify(response), 200
 
 @app.route('/static/<string:directory>/<path:path>')

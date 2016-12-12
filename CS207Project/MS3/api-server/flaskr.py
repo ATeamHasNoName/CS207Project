@@ -197,9 +197,13 @@ def get_timeseries_with_id(tid):
 		abort(404)
 	log.info('Getting Timeseries with id=%s', tid)
 
-	# TODO: Also returns this timeseries' from disk
+	fsm = FileStorageManager()
+	serialize = Serialize()
+	timeseriesObject = fsm.get(key=tid)
+
+	timeseriesJson = serialize.ts_to_json(timeseriesObject)
 	
-	return jsonify({'metadata': timeseries, 'timeseries': ''}), 200
+	return jsonify({'metadata': timeseries, 'timeseries': timeseriesJson}), 200
 
 @app.route('/simquery', methods=['GET'])
 def get_simquery():
@@ -223,7 +227,7 @@ def post_simquery():
 	k = request.json['k']
 
 	# TODO: Run part 7 vantage point code 
-	# 
+	
 	return jsonify({'timeseries': ''}), 200
 
 @app.errorhandler(404)

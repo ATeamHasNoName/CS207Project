@@ -19,7 +19,8 @@ class Serialize:
 		for i in range(len(vals)):
 			lst.append((times[i],vals[i]))
 			rs = json.dumps(dict(lst))
-		return rs
+		# Convert JSON string to JSON object
+		return json.loads(rs)
 		
 	def json_to_bytes(self,json):
 		"""
