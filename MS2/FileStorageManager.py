@@ -2,11 +2,7 @@ import numpy as np
 import os
 import sys
 from StorageManagerInterface import StorageManagerInterface
-
-try:
-	sys.path.append('./DB/'); from WrappedDB import *
-except ImportError:
-	sys.path.append('./MS2/DB/'); from WrappedDB import *
+from WrappedDB import *
 
 class FileStorageManager(StorageManagerInterface):
 	"""
@@ -16,7 +12,7 @@ class FileStorageManager(StorageManagerInterface):
 
 	def __init__(self):
 		"""
-		Initializes a FileStorageManager to store entries to disk.
+		Initializes a FileStorageManager instance with a filename to store entries to disk.
 		Cache size can be changed in initializing WrappedDB.
 
 		Parameters
