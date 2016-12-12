@@ -9,24 +9,19 @@ from TimeSeries import TimeSeries
 
 # Test cases for the WrappedDB class
 
-# NOTE: Coverage on WrappedDB is not 100% because lines 79-83 where we re-randomize the keys 
+# NOTE: Coverage on WrappedDB is not 100% because there are some lines where we re-randomize the keys 
 # to ensure we get a unique key is impossible to test. However we know the logic is correct by 
 # testing the random key generator function before that.
 class WrappedDBTest(unittest.TestCase):
 
-	# Test caching
-	# Test encode and decode directly
-
 	def setUp(self):
-		self.wdb = WrappedDB('wdb.dbdb', cacheSize=2)
-		self.wdb_noCache = WrappedDB('wdb_nocache.dbdb', cacheSize=0)
+		self.wdb = WrappedDB(cacheSize=2)
+		self.wdb_noCache = WrappedDB(cacheSize=0)
 		self.ts = TimeSeries(values=[1, 3, 0, 1.5, 1], times=[1.5, 2, 2.5, 3, 10.5])
 		self.ts_notime = TimeSeries(values=[2, 3, 4], times=None)
 		self.ts_single = TimeSeries(values=[-2], times=[1])
 
 	def tearDown(self):
-		os.remove('wdb.dbdb')
-		os.remove('wdb_nocache.dbdb')
 		del self.wdb
 		del self.wdb_noCache
 		del self.ts
@@ -40,27 +35,32 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 1)
+		os.remove("ts_1.dbdb")
 
 	def test_storeAndGetWithoutKey(self):
 		# Key is randomized here
 		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 1)
+		os.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetSize(self):
 		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
 		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 5)
+		os.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetWithKeyNoTime(self):
 		key = "2"
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_notime)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 2)
+		os.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetSizeSingle(self):
 		key = 999
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_single)
 		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 1)
+		os.remove("ts_" + str(key) + ".dbdb")
 
 	def test_inputClassIsNotTimeSeries(self):
 		with self.assertRaises(ValueError):
@@ -71,6 +71,8 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
 		with self.assertRaises(ValueError):
 			self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
+			os.remove("ts_" + str(key) + ".dbdb")
+		os.remove("ts_" + str(key) + ".dbdb")
 
 	# Test cache
 	
@@ -83,6 +85,7 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(key)
 		self.assertEquals(self.wdb.cache, {'1': self.ts})
 		self.assertEquals(self.wdb.keyToCount, {'1': 1})
+		os.remove("ts_" + str(key) + ".dbdb")
 
 	def test_cacheNotFull_getMultiple(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -94,6 +97,8 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 1})
+		os.remove("ts_" + str(1) + ".dbdb")
+		os.remove("ts_" + str(2) + ".dbdb")
 
 	def test_cacheFull(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -107,6 +112,9 @@ class WrappedDBTest(unittest.TestCase):
 		# key 3 should be replaced by 2
 		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 2, '3': 1})
+		os.remove("ts_" + str(1) + ".dbdb")
+		os.remove("ts_" + str(2) + ".dbdb")
+		os.remove("ts_" + str(3) + ".dbdb")
 
 	def test_cacheFullComplex(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -122,6 +130,9 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(sorted(list(self.wdb.cache.keys())), ['2', '3'])
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 3, '3': 3})
+		os.remove("ts_" + str(1) + ".dbdb")
+		os.remove("ts_" + str(2) + ".dbdb")
+		os.remove("ts_" + str(3) + ".dbdb")
 
 	def test_noCache(self):
 		self.wdb_noCache.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -133,6 +144,9 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(self.wdb_noCache.cache, {})
+		os.remove("ts_" + str(1) + ".dbdb")
+		os.remove("ts_" + str(2) + ".dbdb")
+		os.remove("ts_" + str(3) + ".dbdb")
 
 	# Test encode and decode
 

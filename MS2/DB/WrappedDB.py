@@ -4,10 +4,17 @@ import random
 import os
 import sys
 import operator
-sys.path.append('../MS1/')
-from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
-from TimeSeries import TimeSeries
-from ArrayTimeSeries import ArrayTimeSeries
+
+try:
+	sys.path.append('../MS1/'); 
+	from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
+	from TimeSeries import TimeSeries
+	from ArrayTimeSeries import ArrayTimeSeries
+except ImportError:
+	sys.path.append('../../MS1/'); from WrappedDB import *
+	from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
+	from TimeSeries import TimeSeries
+	from ArrayTimeSeries import ArrayTimeSeries
 
 # READ: Setup for DB
 # Download the .zip for portalocker here: https://github.com/WoLpH/portalocker and store it anywhere
@@ -18,28 +25,32 @@ class WrappedDB:
 	Wraps the DB.py file which contains lab 10 code.
 	"""
 
-	def __init__(self, filename, cacheSize=10):
+	def __init__(self, cacheSize=10):
 		"""
 		Initializes a WrappedDB instance with a filename and cache size to store entries to disk.
 
 		Parameters
 		----------
-		filename: a String filename that ends with .dbdb
 		cacheSize: The number of time series to cache. If set to 0, no caching will be implemented.
 
 		Returns
 		-------
 		None
 		
-		>>> wdb = WrappedDB('testwdb.dbdb', cacheSize=5)
+		>>> wdb = WrappedDB(cacheSize=5)
 		>>> type(wdb)
 		<class 'WrappedDB.WrappedDB'>
-		>>> os.remove('testwdb.dbdb')
 		"""
-		self.db = DB.connect(filename)
+		# These variables are used for caching
 		self.cacheSize = cacheSize
 		self.cache = {} # key to TimeSeries dictionary cache
 		self.keyToCount = {} # key to number of times TimeSeries has been retrieved
+
+	def _fileNameForKey(self, key):
+		"""
+		Private helper function that takes in a key and outputs the filename for this key.
+		"""
+		return "ts_" + str(key) + ".dbdb"
 
 	# Stores a time series by key in the DB
 	# Returns the key after storing
@@ -55,19 +66,19 @@ class WrappedDB:
 		
 		Returns
 		-------
-		key: String og either the input key or our randomly generated key
+		key: String of either the input key or our randomly generated key
 		
 		Notes
 		-----
 		PRE:
 			- timeSeries has to be a valid SizedContainerTimeSeriesInterface concrete class
 			
-		>>> wdb = WrappedDB('testwdb.dbdb', cacheSize=5)
+		>>> wdb = WrappedDB(cacheSize=5)
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
 		>>> key = wdb.storeKeyAndTimeSeries(ts)
 		>>> wdb.getTimeSeriesSize(key)
 		5
-		>>> os.remove('testwdb.dbdb')
+		>>> os.remove('ts_' + str(key) + '.dbdb')
 		"""
 		if not isinstance(timeSeries, SizedContainerTimeSeriesInterface):
 			raise ValueError('Input class is not time series')
@@ -89,34 +100,13 @@ class WrappedDB:
 		else:
 			key = str(key)
 			
-		self.db.set(str(key), self._encode(timeSeries))
-		self._storeKeyAndTimeSeriesSize(timeSeries, str(key))
-		self.db.commit()
+		# Create a new file from the key
+		filename = self._fileNameForKey(key)
+		newDB = DB.connect(filename)
+		newDB.set("timeseries", self._encode(timeSeries))
+		newDB.set("size", str(len(timeSeries)))
+		newDB.commit()
 		return key
-
-
-	# Also stores time series' size in the DB
-	def _storeKeyAndTimeSeriesSize(self, timeSeries, key):
-		"""
-		Helper function that stores the size of the time series at the key of key:size
-		This is called upon storing a key and time series
-		
-		Parameters
-		----------
-		key: String or int of the key index of the SizedContainerTimeSeriesInterface
-		timeSeries: Concrete class of SizedContainerTimeSeriesInterface
-		
-		Returns
-		-------
-		None
-		
-		Notes
-		-----
-		PRE:
-			- timeSeries has to be a valid SizedContainerTimeSeriesInterface concrete class
-		"""
-		# Note that it is not committed here, and must be committed in the caller function
-		self.db.set(str(key) + ':size', str(len(timeSeries)))
 
 	# Get the size of the time series' from its key
 	# Returns -1 when time series key does not exist
@@ -137,16 +127,21 @@ class WrappedDB:
 		PRE:
 			- key has to be string or int
 			
-		>>> wdb = WrappedDB('testwdb.dbdb')
+		>>> wdb = WrappedDB()
 		>>> wdb.getTimeSeriesSize("2")
 		-1
-		>>> os.remove('testwdb.dbdb')
 		"""
+
+		# Read the file from this key
+		filename = self._fileNameForKey(key)
+		existingDB = DB.connect(filename)
 		try:
-			size = self.db.get(str(key) + ':size')
+			size = existingDB.get("size")
 		except KeyError:
-			return -1
-		return int(self.db.get(str(key) + ':size'))
+			# Timeseries does not exist, delete the filename
+			os.remove(filename)
+			return - 1
+		return int(existingDB.get("size"))
 
 	"""
 	Logic for our cache:
@@ -232,12 +227,12 @@ class WrappedDB:
 		POST:
 			- SizedContainerTimeSeriesInterface is actually a TimeSeries class (more generic than ArrayTimeSeries)
 			
-		>>> wdb = WrappedDB('testwdb.dbdb')
+		>>> wdb = WrappedDB()
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
 		>>> key = wdb.storeKeyAndTimeSeries(key="1", timeSeries=ts)
 		>>> wdb.getTimeSeries("1").values()
 		[0.0, 2.0, -1.0, 0.5, 0.0]
-		>>> os.remove('testwdb.dbdb')
+		>>> os.remove('ts_1.dbdb')
 		"""
 		key = str(key)
 
@@ -246,16 +241,20 @@ class WrappedDB:
 		if self._keyIsInTopCached(key):
 			# Get from cache
 			timeSeries = self.cache[key]
+			self._refreshCache(key, timeSeries)
+			return timeSeries
 
+		# Grab the file as it is not in cache
+		filename = self._fileNameForKey(key)
 		try:
-			timeSeriesString = self.db.get(key)
+			existingDB = DB.connect(filename)
+			timeSeriesString = existingDB.get("timeseries")
 		except KeyError:
+			os.remove(filename)
 			return None
 
 		timeSeries = self._decode(timeSeriesString)
-		# Refresh cache
 		self._refreshCache(key, timeSeries)
-
 		return timeSeries
 
 	def _encode(self, timeSeries):
@@ -271,11 +270,10 @@ class WrappedDB:
 		String representation of time series object, where each time and value is encoded in 
 		"(t,v)" and separated with ";"
 
-		>>> wdb = WrappedDB('testwdb.dbdb')
+		>>> wdb = WrappedDB()
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
 		>>> wdb._encode(ts)
 		'(1,0);(1.5,2);(2,-1);(2.5,0.5);(10,0)'
-		>>> os.remove('testwdb.dbdb')
 		"""
 		items = timeSeries.items()
 		encodedTimeSeries = []
@@ -299,12 +297,11 @@ class WrappedDB:
 		-------
 		timeSeries: TimeSeries class
 
-		>>> wdb = WrappedDB('testwdb.dbdb')
+		>>> wdb = WrappedDB()
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
 		>>> encodedString = wdb._encode(ts)
 		>>> wdb._decode(encodedString)
 		TimeSeries([(1.0, 0.0), (1.5, 2.0), (2.0, -1.0), (2.5, 0.5), (10.0, 0.0)])
-		>>> os.remove('testwdb.dbdb')
 		"""
 		itemStrings = encodedTimeSeries.split(';')
 		t = []

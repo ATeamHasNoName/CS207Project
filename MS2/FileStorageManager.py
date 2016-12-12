@@ -14,26 +14,27 @@ class FileStorageManager(StorageManagerInterface):
 	Essentially we wrote our own encode function in WrappedDB that encodes TimeSeries objects in their String representations before storing them.
 	"""
 
-	def __init__(self, filename):
+	def __init__(self):
 		"""
 		Initializes a FileStorageManager instance with a filename to store entries to disk.
+		Cache size can be changed in initializing WrappedDB.
 
 		Parameters
 		----------
-		filename: a String filename that ends with .dbdb
+		None
 
 		Returns
 		-------
 		None
 		
-		>>> fsm = FileStorageManager('testfsm.dbdb')
+		>>> fsm = FileStorageManager()
 		>>> type(fsm)
 		<class 'FileStorageManager.FileStorageManager'>
-		>>> os.remove('testfsm.dbdb')
 		"""
-		self.db = WrappedDB(filename=filename)
+		# This cache size can be changed. 10 is the default.
+		self.db = WrappedDB(cacheSize=10)
 
-	def store(self, key, timeSeries):
+	def store(self, timeSeries, key=None):
 		"""
 		Stores an instance of SizedContainerTimeSeriesInterface using a string or int key.
 		
@@ -44,7 +45,7 @@ class FileStorageManager(StorageManagerInterface):
 		
 		Returns
 		-------
-		None
+		Key of the timeseries
 		
 		Notes
 		-----
@@ -52,14 +53,15 @@ class FileStorageManager(StorageManagerInterface):
 			- key has to be string or int
 			- timeSeries has to be a valid SizedContainerTimeSeriesInterface concrete class
 			
-		>>> fsm = FileStorageManager('testfsm.dbdb')
+		>>> fsm = FileStorageManager()
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
-		>>> fsm.store("1", ts)
-		>>> fsm.size("1")
+		>>> key = fsm.store(timeSeries=ts, key="1")
+		>>> fsm.size(key)
 		5
-		>>> os.remove('testfsm.dbdb')
+		>>> os.remove("ts_" + str(key) + ".dbdb")
 		"""
-		self.db.storeKeyAndTimeSeries(timeSeries=timeSeries, key=key)
+		genKey = self.db.storeKeyAndTimeSeries(timeSeries=timeSeries, key=key)
+		return genKey
 
 	def size(self, key):
 		"""
@@ -78,10 +80,9 @@ class FileStorageManager(StorageManagerInterface):
 		PRE:
 			- key has to be string or int
 			
-		>>> fsm = FileStorageManager('testfsm.dbdb')
+		>>> fsm = FileStorageManager()
 		>>> fsm.size("2")
 		-1
-		>>> os.remove('testfsm.dbdb')
 		"""
 		return self.db.getTimeSeriesSize(key=key)
 
@@ -105,12 +106,12 @@ class FileStorageManager(StorageManagerInterface):
 		POST:
 			- SizedContainerTimeSeriesInterface is actually a TimeSeries class (more generic than ArrayTimeSeries)
 			
-		>>> fsm = FileStorageManager('testfsm.dbdb')
+		>>> fsm = FileStorageManager()
 		>>> ts = TimeSeries(values=[0, 2, -1, 0.5, 0], times=[1, 1.5, 2, 2.5, 10])
-		>>> fsm.store("1", ts)
-		>>> secondval = fsm.get("1").values()[1]
+		>>> key = fsm.store(timeSeries=ts)
+		>>> secondval = fsm.get(key).values()[1]
 		>>> secondval
 		2.0
-		>>> os.remove('testfsm.dbdb')
+		>>> os.remove("ts_" + str(key) + ".dbdb")
 		"""
 		return self.db.getTimeSeries(key=key)

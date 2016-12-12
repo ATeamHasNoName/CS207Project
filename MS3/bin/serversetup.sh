@@ -10,6 +10,7 @@
 sudo pkill -f httpd
 sudo pkill -f run.py
 sudo pkill -f flaskr.py
+sudo pkill -f python
 sudo rm /etc/nginx/sites-enabled/*
 sudo rm /etc/nginx/sites-available/app_server_nginx.conf
 sudo rm /etc/nginx/sites-available/api_server_nginx.conf

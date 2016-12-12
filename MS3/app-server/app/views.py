@@ -73,20 +73,20 @@ def get_simquery():
 
 @app.route('/simquery', methods=['POST'])
 def post_simquery():
-    '''
-    Get top k similar time series with respect to the input time series in JSON form in 
-    the POST body.
-    '''
-    if (not request.json or not 'timeseries' in request.json):
-        abort(400)
-    # Timeseries is dictionary/JSON of the format of {'key': value}
-    timeseries = request.json['timeseries']
+	'''
+	Get top k similar time series with respect to the input time series in JSON form in 
+	the POST body.
+	'''
+	if (not request.json or not 'timeseries' in request.json):
+		abort(400)
+	# Timeseries is dictionary/JSON of the format of {'key': value}
+	timeseries = request.json['timeseries']
 	if not isinstance(timeseries, dict) or len(timeseries) != 100:
 		abort(400, 'Input time series is not a json object or its length is not 100')
-    k = request.json['k']
-    if k is None or not isinstance(k, int):
-        # If k not provided, default to finding top 5 similar timeseries
-        k = 5
+	k = request.json['k']
+	if k is None or not isinstance(k, int):
+		# If k not provided, default to finding top 5 similar timeseries
+		k = 5
 	response = service.post_simquery(timeseries, k)
 	return jsonify(response), 200
 
