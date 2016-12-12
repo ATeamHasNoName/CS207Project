@@ -96,7 +96,8 @@ def get_simquery():
 	log.info(timeseriesBytes)
 	
 	# response = service.get_simquery(tid, k)
-	return jsonify(response), 200
+	# Return k closest time series from socket server
+	return jsonify({'timeseries': []}), 200
 
 @app.route('/simquery', methods=['POST'])
 def post_simquery():
@@ -123,7 +124,8 @@ def post_simquery():
 	log.info(timeseriesBytes)
 
 	# response = service.post_simquery(timeseries, k)
-	return jsonify(response), 200
+	# Return k closest time series from socket server
+	return jsonify({'timeseries': []}), 200
 
 @app.route('/static/<string:directory>/<path:path>')
 def send_static(directory, path):
