@@ -1,0 +1,7 @@
+TimeSeries.ipynb
+.coverage
+.cache/*
+*.pyc
+*.txt
+*.pem
+*.dbdb
