@@ -19,7 +19,7 @@ TIMEOUT = 30
 SOCKETS = []
 BUFFERSIZE = 65536  # TODO: Increase??
 ARGUMENTS = 3
-LINE = "========================================================================\n"
+LINE = "========================================================================"
 
 def Server():
     
@@ -82,12 +82,11 @@ def Server():
                     ts_or_id = data[0]
                     length   = int(data[1:33]) # Length starts at character 1 and ends at 32
                     ts_bytes    = data[33 : 33 + length]
-                    value = ts_bytes
+
+                    # Store key if id was sent from client:
+                    key = ts_bytes
+
                     ts_bytes = bytes(ts_bytes, encoding='utf-8')
-                    print("ts_or_id from client: %s" % (ts_or_id))
-                    print("length from client: %s" % (length))
-                    print("ts_bytes from client: %s" %(ts_bytes))
-                    print(LINE)
                     
                     # Fetch TS:
                     if int(ts_or_id) == 1:
@@ -100,9 +99,21 @@ def Server():
                         top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts)
                     else:
                         # Fetch from ID:
-                        ts_by_id = FindTimeSeriesByKey(value)
+                        ts_by_id = FindTimeSeriesByKey(key)
+                        # If ID is none then we let the client know and close the socket:
+                        if ts_by_id is None:
+                            id_not_in_database_string = "The id %s is not in the database.\n" % (key)
+                            SOCKETS[1].send(bytes(id_not_in_database_string, encoding='utf-8'))
+                            SOCKETS.remove(SOCKETS[1])
+                            print("Client sent invalid id to server. Connection to client closed.")
+                            print(LINE)
+                            continue
+
                         # Get top 5 ids and timeseries and convert to bytes:
                         top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts_by_id)
+
+                    print("Sent closest k timeseries and ids to client")
+                    print(LINE + "\n")
 
                     # If we have a connection then send data to the socket:
                     if SOCKETS[1]:

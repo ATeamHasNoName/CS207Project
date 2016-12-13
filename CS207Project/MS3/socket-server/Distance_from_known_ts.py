@@ -14,11 +14,8 @@ from FileStorageManager import FileStorageManager
 from DB import *
 
 def FindTimeSeriesByKey(key):
-	print("Inside findtimeseriesbykey")
 	fsm = FileStorageManager()
 	ts = fsm.get(key)
-	print("Before return")
-	print(ts)
 	return ts
 
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
@@ -56,7 +53,7 @@ def Simsearch(inputTS, k, id_or_ts):
 	try:
 		vantageDB = DB.connect(vantage_index_file_name)
 		vantageDB.get("0")
-		print("Vantage points already initialized")
+		#print("Vantage points already initialized")
 		
 	except KeyError:
 		# Have to delete file that is created in the try block above or this will cause the connect in Step 2 to crash
