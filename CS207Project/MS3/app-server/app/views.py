@@ -1,5 +1,7 @@
 import os
 import logging
+import socket
+import select
 from app import app
 from collections import OrderedDict
 from app.service import APIService
@@ -21,18 +23,29 @@ def _requiredLengthOfTimeSeries():
 	'''
 	return 4
 
+@app.route('/428/<string:directory>/<path:path>')
+def send_static(directory, path):
+	"""
+	Route static files via /428 as /static is a reserved keyword in nginx
+	"""
+	log.info('Static File Dir:%s, Path:%s', directory, path)
+	return send_from_directory('static', os.path.join(directory, path))
+
 @app.route('/')
 def home():
-	# TODO: This will eventually be replaced with Part 11 code for the index.html views
+	"""
+	Single page with flot charts is presened at /
+	"""
+	# TODO: To remove this
 	timeseries = service.get_timeseries()
 	return render_template('index.html', timeseries=timeseries)
 
 @app.route('/timeseries', methods=['GET'])
 def get_timeseries():
-	'''
+	"""
 	Get time series metadata.
 	Range queries define which time series are being fetched.
-	'''
+	"""
 	# Grab all params if there are present
 	mean_in = request.args.get('mean_in')
 	std_in = request.args.get('std_in')
@@ -44,10 +57,10 @@ def get_timeseries():
 
 @app.route('/timeseries', methods=['POST'])
 def create_timeseries():
-	'''
+	"""
 	Stores a new time series in the data stores (all 3)
 	Might have to recalculate vantage points for every 50 new time series stored
-	'''
+	"""
 	# Request must be a JSON object that has the keys: tid and timeseries
 	if (not request.json or not 'id' in request.json or not 'timeseries' in request.json):
 		abort(400, 'Input time series is not a json object, does not have an id key or does not have a timeseries key')
@@ -65,19 +78,103 @@ def create_timeseries():
 
 @app.route('/timeseries/<string:tid>', methods=['GET'])
 def get_timeseries_with_id(tid):
-	'''
+	"""
 	Get time series metadata and the timeseries itself with provided id
-	'''
+	"""
 	metadata = service.get_timeseries_with_id(tid)
 	# TODO: Now get actual timeseries object from Socket Server
 
 	return jsonify(metadata), 200
 
+def _binaryLength32(length):
+	"""
+	Private helper function for connecting to socket server that returns the binary length of string.
+
+	Parameters
+	----------
+	length: the length of the string 
+	
+	Returns
+	-------
+	the length of the string in 32 bit binary
+
+	>>> st = "CS207"
+	>>> st_length = len(st)
+	>>> st_binary_length = binaryLength32(st_length)
+	>>> st_binary_length
+	'00000000000000000000000000000101'
+	"""
+	return format(length, '032b')
+
+def _getClosestTimeSeries_from_socket_server(k, ts_or_id, timeseriesID=None, timeseriesJSON=None):
+	"""
+	Function to connect to the socket server and pass over the timeseries ID or time series JSON 
+	in order to get the closest time series.
+	"""
+	host = "localhost"
+	port = "5002"
+	BUFFERSIZE = 65536
+
+	# Converts either ID or JSON
+	ts_json = 0
+	if int(ts_or_id) == 1: # 1 stands for JSON
+		ts_json = Serialize().json_to_jsonstring(timeseriesJSON)
+	else: # 0 stands for ID
+		ts_json = timeseriesID
+
+	# Set up socket
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+	s.settimeout(3)
+
+	# Try to connect to the server
+	try :
+		log.info("Connecting to IP: %s" % (host))
+		log.info("Connecting to port: %s\n" % (port))
+		s.connect((host, port))
+	except :
+		log.info('Cannot connect to the server. IP address provided or port number might be wrong or host is not up.\n')
+		raise ValueError('Issue with socket server')
+
+	ts_to_json_LengthBinary = _binaryLength32(len(ts_json))
+
+	# Format sent to server is:
+	# 0/1: id is 0, ts is 1        [Starts at byte number 1]
+	# length of id / ts in 32 bits [Starts at byte number 2]
+	# value of id or ts            [Starts at byte number 34]
+	sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + ts_json
+
+	if (int(ts_or_id) == 0):
+		print("Sending id to server")
+	else:
+		print("Sending TimeSeries to server")
+
+	s.send(Serialize().jsonstring_to_bytes(sendTsOrIdToServer))
+	print("Data is encoded as: %s\n" % (bytes(sendTsOrIdToServer, encoding='utf-8')))
+
+	while True:
+		empty = []
+
+		# Fetch sockets from server:
+		availableSockets = [sys.stdin, s]
+		sockets, write, error = select.select(availableSockets, empty, empty)
+
+		for incomingSocket in sockets:
+			if incomingSocket == s:
+				print("Got a response from server.\n")
+				buffer = incomingSocket.recv(BUFFERSIZE)
+				buffer = buffer.decode()
+				sys.stdout.write(str(buffer))
+				# TODO: Return the top 5 time series from socket server here
+				s.shutdown(socket.SHUT_RDWR)
+				s.close()
+				sys.exit()
+
 @app.route('/simquery', methods=['GET'])
 def get_simquery():
-	'''
+	"""
 	Get top k similar time series with respect to the input id in the query string
-	'''
+	"""
 	tid = request.args.get('id')
 	# There must be the id of the id to perform simquery in the query
 	if tid is None:
@@ -87,7 +184,8 @@ def get_simquery():
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
 	
-	# TODO: Convert tid and k to bytes and send to socket server
+	# TODO: Send to socket server
+	# closestTimeseries = _getClosestTimeSeries_from_socket_server(k=k, ts_or_id=0, timeseriesID=tid)
 
 	# Get back nearest k TimeSeries json in {"id1": {"key1": v1, ...}, ...} format
 	
@@ -107,10 +205,10 @@ def get_simquery():
 
 @app.route('/simquery', methods=['POST'])
 def post_simquery():
-	'''
+	"""
 	Get top k similar time series with respect to the input time series in JSON form in 
 	the POST body.
-	'''
+	"""
 	if (not request.json or not 'timeseries' in request.json):
 		abort(400)
 	# Timeseries is dictionary/JSON of the format of {'key': value}
@@ -122,20 +220,21 @@ def post_simquery():
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
 
-	# TODO: Serialize and send to socket server
-	serialize = Serialize()
-	timeseriesBytes = serialize.json_to_bytes(timeseries)
+	# TODO: Convert timeseries json and k to bytes and send to socket server
+	# closestTimeseries = _getClosestTimeSeries_from_socket_server(k=k, ts_or_id=1, timeseriesJSON=timeseries)
 
-	log.info("Time Series Bytes:")
-	log.info(timeseriesBytes)
+	# Get back nearest k TimeSeries json in {"id1": {"key1": v1, ...}, ...} format
+	closestTimeseries = {"111": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.6}, "123": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.7}}
+	# Get the metadata of the closest timeseries from the API
+	tid_in = ','.join(map(str, closestTimeseries.keys()))
+	metadata = service.get_timeseries(tid_in=tid_in)
 
-	# When done with socket server to get the top k ids, get meta data and actual timeseries of timeseries found
+	# Sort closestTimeseries by keys
+	closestTimeseries = OrderedDict(sorted(closestTimeseries.items()))
 
-	# response = service.post_simquery(timeseries, k)
-	# Return k closest time series from socket server
-	return jsonify({'timeseries': []}), 200
+	log.info("metadata in simquery:")
+	log.info(metadata)
+	log.info(metadata["metadata"])
+	return jsonify({'timeseries': closestTimeseries, 'metadata': metadata["metadata"]}), 200
 
-@app.route('/static/<string:directory>/<path:path>')
-def send_static(directory, path):
-	log.info('Static File Dir:%s, Path:%s', directory, path)
-	return send_from_directory('static', os.path.join(directory, path))
+
