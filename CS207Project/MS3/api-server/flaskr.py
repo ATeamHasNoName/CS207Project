@@ -6,9 +6,9 @@ from flask import Flask, request, abort, jsonify, make_response
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder
 
-sys.path.append('../'); from TSDBSerialize import Serialize
-sys.path.append('../../MS2/'); from FileStorageManager import FileStorageManager
-sys.path.append('../../MS1/'); from TimeSeries import TimeSeries
+# sys.path.append('../'); from TSDBSerialize import Serialize
+# sys.path.append('../../MS2/'); from FileStorageManager import FileStorageManager
+# sys.path.append('../../MS1/'); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
 
@@ -83,16 +83,26 @@ def _split_range(in_query):
 	except ValueError:
 		return None, None
 
-def _split_level(level_in_query):
+def _split_commas(comma_separated_query):
 	'''
 	Takes in string of level_in_query, and returns the tuple form
 	If empty no comma, treat the whole string as a level, which has similar behavior to "level equals" param
 	'''
-	levels = level_in_query.split(',')
-	return tuple(levels)
+	elements = comma_separated_query.split(',')
+	return tuple(elements)
 
 @app.route('/timeseries', methods=['GET'])
 def get_timeseries():
+
+	# Extra: Allows query by timeseries ids, tid_in=<id1>,<id2> in a similar format to level_in
+	tid_in = request.args.get('tid_in')
+	if tid_in is not None:
+		# Specific query for tids, do not mix with the other range queries
+		tids = _split_commas(tid_in)
+		timeseries_queried = TimeSeriesModel.query.filter(
+			TimeSeries.tid.in_(tids)).order_by(TimeSeries.tid).all()
+		return jsonify(dict(metadata=timeseries_queried)), 200
+
 	# Extra credit: Support multiple queries at a time
 	
 	# Continuous variables only support in
@@ -130,7 +140,7 @@ def get_timeseries():
 	if level is not None:
 		levels = (level, level) # Need at least two elements to make it a tuple
 	elif level_in is not None:
-		levels = _split_level(level_in)
+		levels = _split_commas(level_in)
 
 	timeseries_queried = TimeSeriesModel.query.filter(
 		TimeSeriesModel.mean>mean_lower).filter(
@@ -179,11 +189,11 @@ def create_timeseries():
 
 	# TODO: Update vantage points if necessary
 
-	fsm = FileStorageManager()
-	serialize = Serialize()
-	# Convert the JSON object to a TimeSeries object to store it in FSM
-	timeseriesObject = serialize.json_to_ts(timeseries)
-	fsm.store(timeSeries=timeseriesObject, key=tid)
+	# fsm = FileStorageManager()
+	# serialize = Serialize()
+	# # Convert the JSON object to a TimeSeries object to store it in FSM
+	# timeseriesObject = serialize.json_to_ts(timeseries)
+	# fsm.store(timeSeries=timeseriesObject, key=tid)
 	
 	return jsonify(timeseries), 201
 
@@ -197,38 +207,38 @@ def get_timeseries_with_id(tid):
 		abort(404)
 	log.info('Getting Timeseries with id=%s', tid)
 
-	fsm = FileStorageManager()
-	serialize = Serialize()
-	timeseriesObject = fsm.get(key=tid)
+	# fsm = FileStorageManager()
+	# serialize = Serialize()
+	# timeseriesObject = fsm.get(key=tid)
 
-	timeseriesJson = serialize.ts_to_json(timeseriesObject)
+	# timeseriesJson = serialize.ts_to_json(timeseriesObject)
 	
-	return jsonify({'metadata': timeseries, 'timeseries': timeseriesJson}), 200
+	return jsonify({'metadata': timeseries}), 200
 
-@app.route('/simquery', methods=['GET'])
-def get_simquery():
-	'''
-	Get top k similar time series with respect to the input id in the query string
-	'''
-	tid = request.args.get('id')
-	k = request.args.get('k')
+# @app.route('/simquery', methods=['GET'])
+# def get_simquery():
+# 	'''
+# 	Get top k similar time series with respect to the input id in the query string
+# 	'''
+# 	tid = request.args.get('id')
+# 	k = request.args.get('k')
 
-	# TODO: Run part 7 vantage point code
+# 	# TODO: Run part 7 vantage point code
 	
-	return jsonify({'timeseries': ''}), 200
+# 	return jsonify({'timeseries': ''}), 200
 
-@app.route('/simquery', methods=['POST'])
-def post_simquery():
-	'''
-	Get top k similar time series with respect to the input time series in JSON form in 
-	the POST body.
-	'''
-	timeseries = request.json['timeseries']
-	k = request.json['k']
+# @app.route('/simquery', methods=['POST'])
+# def post_simquery():
+# 	'''
+# 	Get top k similar time series with respect to the input time series in JSON form in 
+# 	the POST body.
+# 	'''
+# 	timeseries = request.json['timeseries']
+# 	k = request.json['k']
 
-	# TODO: Run part 7 vantage point code 
+# 	# TODO: Run part 7 vantage point code 
 	
-	return jsonify({'timeseries': ''}), 200
+# 	return jsonify({'timeseries': ''}), 200
 
 @app.errorhandler(404)
 def not_found(error):

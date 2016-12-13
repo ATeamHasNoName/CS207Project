@@ -1,6 +1,7 @@
 import os
 import logging
 from app import app
+from collections import OrderedDict
 from app.service import APIService
 from flask import render_template, send_from_directory
 from flask import Flask, request, abort, redirect, url_for, jsonify, make_response
@@ -8,7 +9,7 @@ from flask import Flask, request, abort, redirect, url_for, jsonify, make_respon
 import sys
 
 sys.path.append(os.path.abspath("../")); from TSDBSerialize import Serialize
-sys.path.append(os.path.abspath("../../MS2")); from FileStorageManager import FileStorageManager
+# sys.path.append(os.path.abspath("../../MS2")); from FileStorageManager import FileStorageManager
 sys.path.append(os.path.abspath("../../MS1")); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,9 @@ def create_timeseries():
 		abort(400, ('Input time series is not a json object or its length of %s is not %s') % (str(len(timeseries)), str(_requiredLengthOfTimeSeries())))
 	# Timeseries must be correct length
 	response = service.create_timeseries(tid, timeseries)
+	# TODO: Send tid and timeseries to socket server to store it there
+	
+
 	return jsonify(response), 201
 
 @app.route('/timeseries/<string:tid>', methods=['GET'])
@@ -64,8 +68,10 @@ def get_timeseries_with_id(tid):
 	'''
 	Get time series metadata and the timeseries itself with provided id
 	'''
-	timeseries = service.get_timeseries_with_id(tid)
-	return jsonify(timeseries), 200
+	metadata = service.get_timeseries_with_id(tid)
+	# TODO: Now get actual timeseries object from Socket Server
+
+	return jsonify(metadata), 200
 
 @app.route('/simquery', methods=['GET'])
 def get_simquery():
@@ -80,24 +86,20 @@ def get_simquery():
 	if k is None or not isinstance(k, int):
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
-
-	# TODO: Send to socket server
 	
-	# Grab time series from FSM
-	fsm = FileStorageManager()
-	serialize = Serialize()
-	timeseriesObject = fsm.get(key=tid)
+	# TODO: Convert tid and k to bytes and send to socket server
 
-	# Serialize and send to socket server
-	timeseriesJSON = serialize.ts_to_json(timeseriesObject)
-	timeseriesBytes = serialize.json_to_bytes(timeseriesJSON)
-
-	log.info("Time series bytes in tid:")
-	log.info(timeseriesBytes)
+	# Get back nearest k TimeSeries json in {"id1": {"key1": v1, ...}, ...} format
 	
-	# response = service.get_simquery(tid, k)
-	# Return k closest time series from socket server
-	return jsonify({'timeseries': []}), 200
+	closestTimeseries = {"111": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.6}, "123": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.7}}
+	# Get the metadata of the closest timeseries from the API
+	tid_in = ','.join(map(str, closestTimeseries.keys()))
+	metadata = service.get_timeseries(tid_in=tid_in)
+
+	# Sort closestTimeseries by keys
+	closestTimeseries = OrderedDict(sorted(closestTimeseries.items()))
+
+	return jsonify({'timeseries': closestTimeseries, 'metadata': metadata["metadata"]}), 200
 
 @app.route('/simquery', methods=['POST'])
 def post_simquery():
