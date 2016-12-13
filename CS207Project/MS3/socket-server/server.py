@@ -93,30 +93,16 @@ def Server():
                     if int(ts_or_id) == 1:
                         # Convert bytes to json
                         ts_json = Serialize().bytes_to_json(ts_bytes)
-                        #ts_json = json.loads(bytes_to_json.decode('utf-8'))
                         # Convert json to TimeSeries:
                         ts = Serialize().json_to_ts(ts_json)
-                        # Get top 5 closest TimeSeries and ids:
-                        top_5_ids = Simsearch(ts, 5,0)
-                        top_5_ts = Simsearch(ts, 5,1)
-                        #top_5_ids, top_5_ts = self.get_top_5_ids_and_ts(ts)
-
-                        # Combine top 5 ids and ts to json:                        
-                        top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
-
-                        # Convert them to bytes to send to client:
-                        top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
+                        
+                        # Get top 5 ids and timeseries and convert to bytes:
+                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts)
                     else:
                         # Fetch from ID:
                         ts_by_id = FindTimeSeriesByKey(value)
-                        # Get top 5 closest TimeSeries and ids:
-                        top_5_ids = Simsearch(ts_by_id, 5,0)
-                        top_5_ts = Simsearch(ts_by_id, 5,1)
-                        # Combine top 5 ids and ts to json:
-                        top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
-                        # Convert them to bytes to send to client:
-                        top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
-
+                        # Get top 5 ids and timeseries and convert to bytes:
+                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts_by_id)
 
                     # If we have a connection then send data to the socket:
                     if SOCKETS[1]:
@@ -128,13 +114,31 @@ def Server():
                 except:
                     continue
 
-def get_top_5_ids_and_ts(ts):
+def get_top_5_ids_and_ts_as_bytes(ts):
+	'''
+	Takes in a TimeSeries and fetches the closest 5 ids and timeseries and returns it as bytes.
+
+		Parameters
+		----------
+		ts: TimeSeries object
+
+		Returns:
+		--------
+		Closest 5 TimeSeries and their Ids as json bytes
+	'''
+	# Get top 5 closest TimeSeries and ids:
 	top_5_ids = Simsearch(ts, 5,0)
 	top_5_ts = Simsearch(ts, 5,1)
-	return top_5_ids, top_5_ts
+
+	# Combine top 5 ids and ts to json:                        
+	top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
+
+	# Convert them to bytes:
+	top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
+
+	return top_5_ids_and_ts_bytes
  
 
-    #hostSocket.close()
 def load_ts_file(filepath):
     '''
     Takes in file and reads time series from it

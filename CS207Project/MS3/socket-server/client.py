@@ -33,6 +33,8 @@ def Client():
         ts_text = filename
 
     # Convert TimeSeries text to json:
+    # Ask for ID is 0
+    # Ask for TS is 1
     ts_json = 0
     if int(ts_or_id) == 1:
         ts_json = Serialize().json_to_jsonstring(Serialize().ts_to_json(ts_text))
