@@ -39,8 +39,8 @@ def Client():
 
     # Try to connect to the server:
     try :
-        print("Connecting to IP: %s" % (host))
-        print("Connecting to port: %s\n" % (port))
+        #print("Connecting to IP: %s" % (host))
+        #print("Connecting to port: %s\n" % (port))
         s.connect((host, port))
     except :
         print( 'Cannot connect to the server. IP address provided or port number might be wrong or host is not up.\n')
@@ -53,13 +53,13 @@ def Client():
     # value of id or ts            [Starts at byte number 34]
     sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + ts_json
 
-    if (int(ts_or_id) == 0):
-        print("Sending id to server")
-    else:
-        print("Sending TimeSeries to server")
+    #if (int(ts_or_id) == 0):
+        #print("Sending id to server")
+    #else:
+        #print("Sending TimeSeries to server")
 
     s.send(Serialize().jsonstring_to_bytes(sendTsOrIdToServer))
-    print("Data is encoded as: %s\n" % (bytes(sendTsOrIdToServer, encoding='utf-8')))
+    #print("Data is encoded as: %s\n" % (bytes(sendTsOrIdToServer, encoding='utf-8')))
 
     while True:
         empty = []
@@ -70,7 +70,6 @@ def Client():
 
         for incomingSocket in sockets:
             if incomingSocket == s:
-                print("Got a response from server.\n")
                 buffer = incomingSocket.recv(BUFFERSIZE)
                 buffer = buffer.decode()
                 sys.stdout.write(str(buffer))

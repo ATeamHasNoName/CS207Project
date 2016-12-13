@@ -10,6 +10,18 @@ class Serialize:
 	"""
 	Serialize class that does conversions between TimeSeries, JSON and Bytes.
 	"""
+	def ids_and_ts_to_json(self, ids, ts):
+		"""
+		Takes in Ids and TimeSeries, converts it to JSON object
+		"""
+		lst = {}
+		for i in range(len(ids)):
+			lst[ids[i]] = self.ts_to_json(ts[i])
+		return lst
+
+	"""
+	Serialize class that does conversions between TimeSeries, JSON and Bytes.
+	"""
 	def ts_to_json(self,ts):
 		"""
 		Takes in TimeSeries, converts it to JSON object

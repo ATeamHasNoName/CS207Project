@@ -47,7 +47,7 @@ def Server():
     print ("A brand new server has fired up using port: " + str(PORT) + "!\n")
 
     # First time server is started: Fill the database with dummy data:
-    SS = Simsearch(load_ts_file("169975.dat_folded.txt"), 5)
+    SS = Simsearch(load_ts_file("169975.dat_folded.txt"), 5, 1)
 
     wait_count = 0
     # Listen to potential incoming sockets:
@@ -86,29 +86,41 @@ def Server():
                     print("length from client: %s" % (length))
                     print("ts_bytes from client: %s" %(ts_bytes))
                     print(LINE)
+                    
+                    # Fetch TS:
                     if int(ts_or_id) == 1:
-                        # Fetch TS:
                         # Convert bytes to json
                         print("inside ts_or_id")
                         ts_json = Serialize().bytes_to_json(ts_bytes)
                         #ts_json = json.loads(bytes_to_json.decode('utf-8'))
                         print("After byees to json")
                         print(ts_json)
-                        # Convert json to ts:
+                        # Convert json to TimeSeries:
                         print("Before json to ts")
                         ts = Serialize().json_to_ts(ts_json)
                         print("After json to ts")
                         print("Got TS:")
                         print(ts)
-                        top_5_ts = Simsearch(ts, 5)
+                        # Get top 5 closest TimeSeries:
+                        top_5_ids = Simsearch(ts, 5,0)
+                        top_5_ts = Simsearch(ts, 5,1)
+                        print("Top 5 ids:")
+                        print(top_5_ids)
                         print("Top 5 ts:")
                         print(top_5_ts)
+                        print("Before top5 ids and ts")
+                   
+                        top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
 
-                        
+                        print("After topm5 isd and ts")
+                        top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
+                        print("top 5 ts bytes")
+                        print(top_5_ids_and_ts_bytes)
 
+                        # Convert top 5 ts to json:
                     # If we have a connection then send data to the socket:
                     if SOCKETS[1]:
-                        SOCKETS[1].send((top_5_ts + "\n").encode())
+                        SOCKETS[1].send(top_5_ids_and_ts_bytes)
 
                     # Remove socket from SOCKET list: 
                     SOCKETS.remove(SOCKETS[1])

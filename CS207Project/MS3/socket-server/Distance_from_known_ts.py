@@ -5,7 +5,6 @@ import numpy as np
 import sys
 from _corr import kernel_dist
 import pprint
-print(sys.path)
 sys.path.append('../../MS1')
 from TimeSeries import TimeSeries
 from ArrayTimeSeries import ArrayTimeSeries
@@ -15,7 +14,7 @@ from FileStorageManager import FileStorageManager
 from DB import *
 
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
-def Simsearch(inputTS, k):
+def Simsearch(inputTS, k, id_or_ts):
 	num_vantage_points = 5
 	num_of_timeseries = 20
 	num_top = k
@@ -140,10 +139,15 @@ def Simsearch(inputTS, k):
 	# Sort dictionary of ID to distance based on ascending order of distance
 	top_ID_distance_dict = sorted(ID_distance_dict, key=ID_distance_dict.get, reverse=False)[:num_top]
 	top_TS = []
-	#for top_IDs in top_ID_distance_dict:
-	#	top_TS.append(fsm.get(top_IDs))
 
-	return(top_ID_distance_dict)
+	# Return top ids:
+	if int(id_or_ts) == 0:
+		return top_ID_distance_dict
+	
+	for top_IDs in top_ID_distance_dict:
+		top_TS.append(fsm.get(top_IDs))
+
+	return(top_TS)
 
 
 
