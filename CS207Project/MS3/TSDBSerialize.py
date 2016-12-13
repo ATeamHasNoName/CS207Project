@@ -27,6 +27,7 @@ class Serialize:
 		"""
 		Takes in JSON object, and converts it into TimeSeries
 		"""
+		print("Inside json_to_ts")
 		treconstruct=[]
 		vreconstruct=[]
 		for key in jsondict.keys():
@@ -59,4 +60,6 @@ class Serialize:
 		"""
 		Takes in bytes, converts it to JSON object
 		"""
+		print("Inside bytes to json")
+		print(bytedata)
 		return json.loads(bytedata.decode('utf-8'))

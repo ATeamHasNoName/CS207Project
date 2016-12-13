@@ -5,9 +5,14 @@ import socket
 import signal
 import json
 import numpy as np
-sys.path.append('../../MS1/')
+from Distance_from_known_ts import Simsearch
+sys.path.append("../")
+from TSDBSerialize import Serialize
+sys.path.append('../MS1/')
 from TimeSeries import TimeSeries
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
+
+
 
 ARGUMENTS = 5
 BUFFERSIZE = 65536
@@ -25,7 +30,7 @@ def Client():
     ts_text = load_ts_file(filename)
 
     # Convert TimeSeries text to json:
-    ts_json = ts_to_json(ts_text)
+    ts_json = Serialize().json_to_jsonstring(Serialize().ts_to_json(ts_text))
 
     # Set up socket:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,7 +58,7 @@ def Client():
     else:
         print("Sending TimeSeries to server")
 
-    s.send(bytes(sendTsOrIdToServer, encoding='utf-8'))
+    s.send(Serialize().jsonstring_to_bytes(sendTsOrIdToServer))
     print("Data is encoded as: %s\n" % (bytes(sendTsOrIdToServer, encoding='utf-8')))
 
     while True:
@@ -116,7 +121,7 @@ def load_ts_file(filepath):
 	>>> ts.values()[0]
 	15.137
     '''
-
+    
     #Only considers the first two columns of the text file (other columns are discarded)
     #Only evaluates time values between 0 and 1
     #First column is presumed to be times and second column is presumed to be light curve values.
@@ -136,30 +141,6 @@ def load_ts_file(filepath):
     full_ts_interpolated = TimeSeries(times=list(np.arange(0.0, 1.0, (1.0 /100))),values=list(interpolated_ts))
     return full_ts_interpolated
 
-def ts_to_json(ts):
-	'''
-	Takes in TimeSeries and converts it to JSON
-
-		Parameters
-		----------
-		ts: TimeSeries to take in
-	
-		Returns
-		-------
-		JSON of timeseries
-
-		>>> ts = TimeSeries([1,2,3],[4,5,6])
-		>>> json = ts_to_json(ts)
-		>>> json
-		'{"4": 1, "5": 2, "6": 3}'
-	'''
-	times=ts.times()
-	vals=ts.values()
-	lst=[]
-	for i in range(len(vals)):
-		lst.append((times[i],vals[i]))
-		rs = json.dumps(dict(lst))
-	return rs
 
 if __name__ == "__main__":
     exit(Client())
