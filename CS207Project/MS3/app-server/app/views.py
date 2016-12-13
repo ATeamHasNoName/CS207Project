@@ -123,6 +123,8 @@ def post_simquery():
 	log.info("Time Series Bytes:")
 	log.info(timeseriesBytes)
 
+	# When done with socket server to get the top k ids, get meta data and actual timeseries of timeseries found
+
 	# response = service.post_simquery(timeseries, k)
 	# Return k closest time series from socket server
 	return jsonify({'timeseries': []}), 200

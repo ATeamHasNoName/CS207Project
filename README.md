@@ -1,5 +1,6 @@
-# cs207project
-Group members:
+# CS 207 Project Fall 2016
+
+ATeamHasNoName group members:
 - Leonard Loo
 - Spandan Madan
 - Tomas Arnar Gudmundsson
@@ -11,12 +12,20 @@ Group members:
 
 Instructions for installing on new EC2 instance:
 
-1) Setup EC2 instructions exactly as per lab 11 instructions
+1) Launch fresh Ubuntu instance on EC2
 
-2) Run: git clone https://github.com/ATeamHasNoName/CS207Project.git
+2) Clone our project repo: <code>git clone https://github.com/ATeamHasNoName/CS207Project.git</code>
 
-3) Run: cd CS207Project/CS207Project/MS3
+3) Run the initial setup script (similar to lab 11): <code>bash CS207Project/initialsetup.sh</code>
 
-4) Run: bash bin/serversetup.sh
+4) Setup PostgreSQL as such (similar to lab 11): 
+- <code>sudo -u postgres psql</code>, and inside psql console:
+- <code>alter user postgres password 'password';</code>
+- <code>create user ubuntu createdb createuser password 'cs207password';</code>
+- <code>create database ubuntu owner ubuntu;</code>
 
-The server is now set up and you can test the various functions.
+5) Go into our MS3 folder: <code>cd ~/CS207Project/CS207Project/MS3</code>
+
+6) Run the server setup script: <code>bash bin/serversetup.sh</code>
+
+The server is now up and running and you can test the various functions. Note that everytime you run the <code>serversetup.sh</code> file you will clear all databases! Also you have to run the <code>serversetup.sh</code> file from the <code>MS3</code> directory.
