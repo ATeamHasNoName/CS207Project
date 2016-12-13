@@ -35,16 +35,28 @@ class Serialize:
 		tsreconstruct=TimeSeries(values=vreconstruct,times=treconstruct)
 		return tsreconstruct
 		
+	def json_to_jsonstring(self,jsondict):
+		"""
+		Takes in JSON object, converts it to JSON string
+		"""
+		return json.dumps(jsondict)
+
+	def jsonstring_to_bytes(self,jsonstring):
+		"""
+		Takes in JSON string, converts it to bytes
+		"""
+		return bytes(jsonstring, encoding='utf-8')
+
 	def json_to_bytes(self,jsondict):
 		"""
 		Takes in JSON object, converts it to bytes
+		Note: This is a combination of json_to_jsonstring and jsonstring_to_bytes
 		"""
 		# Need to first convert jsondict to json string
-		return bytes(json.dumps(jsondict), encoding='utf-8')
+		return self.jsonstring_to_bytes(self.json_to_jsonstring(jsondict))
 
 	def bytes_to_json(self,bytedata):
 		"""
 		Takes in bytes, converts it to JSON object
 		"""
 		return json.loads(bytedata.decode('utf-8'))
-
