@@ -7,6 +7,7 @@ import binascii
 import time
 import numpy as np
 from Distance_from_known_ts import Simsearch
+from Distance_from_known_ts import FindTimeSeriesByKey
 sys.path.append('../')
 from TSDBSerialize import Serialize
 sys.path.append('../MS1/')
@@ -81,6 +82,7 @@ def Server():
                     ts_or_id = data[0]
                     length   = int(data[1:33]) # Length starts at character 1 and ends at 32
                     ts_bytes    = data[33 : 33 + length]
+                    value = ts_bytes
                     ts_bytes = bytes(ts_bytes, encoding='utf-8')
                     print("ts_or_id from client: %s" % (ts_or_id))
                     print("length from client: %s" % (length))
@@ -90,34 +92,32 @@ def Server():
                     # Fetch TS:
                     if int(ts_or_id) == 1:
                         # Convert bytes to json
-                        print("inside ts_or_id")
                         ts_json = Serialize().bytes_to_json(ts_bytes)
                         #ts_json = json.loads(bytes_to_json.decode('utf-8'))
-                        print("After byees to json")
-                        print(ts_json)
                         # Convert json to TimeSeries:
-                        print("Before json to ts")
                         ts = Serialize().json_to_ts(ts_json)
-                        print("After json to ts")
-                        print("Got TS:")
-                        print(ts)
-                        # Get top 5 closest TimeSeries:
+                        # Get top 5 closest TimeSeries and ids:
                         top_5_ids = Simsearch(ts, 5,0)
                         top_5_ts = Simsearch(ts, 5,1)
-                        print("Top 5 ids:")
-                        print(top_5_ids)
-                        print("Top 5 ts:")
-                        print(top_5_ts)
-                        print("Before top5 ids and ts")
-                   
+                        #top_5_ids, top_5_ts = self.get_top_5_ids_and_ts(ts)
+
+                        # Combine top 5 ids and ts to json:                        
                         top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
 
-                        print("After topm5 isd and ts")
+                        # Convert them to bytes to send to client:
                         top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
-                        print("top 5 ts bytes")
-                        print(top_5_ids_and_ts_bytes)
+                    else:
+                        # Fetch from ID:
+                        ts_by_id = FindTimeSeriesByKey(value)
+                        # Get top 5 closest TimeSeries and ids:
+                        top_5_ids = Simsearch(ts_by_id, 5,0)
+                        top_5_ts = Simsearch(ts_by_id, 5,1)
+                        # Combine top 5 ids and ts to json:
+                        top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)
+                        # Convert them to bytes to send to client:
+                        top_5_ids_and_ts_bytes = bytes(str(top_5_ids_and_ts), encoding='utf-8')
 
-                        # Convert top 5 ts to json:
+
                     # If we have a connection then send data to the socket:
                     if SOCKETS[1]:
                         SOCKETS[1].send(top_5_ids_and_ts_bytes)
@@ -128,6 +128,11 @@ def Server():
                 except:
                     continue
 
+def get_top_5_ids_and_ts(ts):
+	top_5_ids = Simsearch(ts, 5,0)
+	top_5_ts = Simsearch(ts, 5,1)
+	return top_5_ids, top_5_ts
+ 
 
     #hostSocket.close()
 def load_ts_file(filepath):

@@ -13,6 +13,14 @@ sys.path.append('../../MS2')
 from FileStorageManager import FileStorageManager
 from DB import *
 
+def FindTimeSeriesByKey(key):
+	print("Inside findtimeseriesbykey")
+	fsm = FileStorageManager()
+	ts = fsm.get(key)
+	print("Before return")
+	print(ts)
+	return ts
+
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
 def Simsearch(inputTS, k, id_or_ts):
 	num_vantage_points = 5

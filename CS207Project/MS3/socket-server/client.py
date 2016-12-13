@@ -25,12 +25,19 @@ def Client():
         return 2
 
     host, port, ts_or_id, filename = readCommandLine()
-
-    # Get text as TimeSeries from file:
-    ts_text = load_ts_file(filename)
+    tstext = 0
+    # Get text as TimeSeries from file if ts_or_id == 0:
+    if int(ts_or_id) == 1:
+        ts_text = load_ts_file(filename)
+    else:
+        ts_text = filename
 
     # Convert TimeSeries text to json:
-    ts_json = Serialize().json_to_jsonstring(Serialize().ts_to_json(ts_text))
+    ts_json = 0
+    if int(ts_or_id) == 1:
+        ts_json = Serialize().json_to_jsonstring(Serialize().ts_to_json(ts_text))
+    else:
+        ts_json = ts_text
 
     # Set up socket:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
