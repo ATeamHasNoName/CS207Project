@@ -1,131 +1,113 @@
-{
-    box-sizing: border-box;
+* {	padding: 0; margin: 0; vertical-align: top; }
+
+body {
+	background: url(background.png) repeat-x;
+	font: 18px/1.5em "proxima-nova", Nunito, Arial, sans-serif;
 }
 
-/* Remove margins and padding from the list */
-ul {
-    margin: 0;
-    padding: 0;
+a {	color: #069; }
+a:hover { color: #28b; }
+
+h2 {
+	margin-top: 15px;
+	font: normal 32px "omnes-pro", Nunito, Arial, sans-serif;
 }
 
-/* Style the list items */
-ul li {
-    cursor: pointer;
-    position: relative;
-    padding: 12px 8px 12px 40px;
-    background: #eee;
-    font-size: 18px;
-    transition: 0.2s;
-
-    /* make the list items unselectable */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+h3 {
+	margin-left: 30px;
+	font: normal 20px "omnes-pro", Nunito, Arial, sans-serif;
+	color: #666;
 }
 
-/* Set all odd list items to a different color (zebra-stripes) */
-ul li:nth-child(odd) {
-    background: #f9f9f9;
+p {
+	margin-top: 10px;
 }
 
-/* Darker background-color on hover */
-ul li:hover {
-    background: #ddd;
-}
+button {
 
-/* When clicked on, add a background color and strike out text */
-ul li.checked {
-    background: #888;
-    color: #fff;
-    text-decoration: line-through;
-}
-
-/* Add a "checked" mark when clicked on */
-ul li.checked::before {
-    content: '';
-    position: absolute;
-    border-color: #fff;
-    border-style: solid;
-    border-width: 0 2px 2px 0;
-    top: 10px;
-    left: 16px;
-    transform: rotate(45deg);
-    height: 15px;
-    width: 7px;
-}
-
-/* Style the update button */
-.updater {
-    display: inline;
-    # position: absolute;
-    # top: 0;
-    # right: 25;
-    padding: 12px 16px 12px 16px
-}
-
-.updater:hover {
-    background-color: #f44336;
-    color: white;
-}
-
-/* Style the close button */
-.close {
-    display: inline;
-    # position: absolute;
-    # right: 0;
-    # top: 0;
-    padding: 12px 16px 12px 16px
-}
-
-.close:hover {
-    background-color: #f44336;
-    color: white;
-}
-
-/* Style the header */
-.header {
-    background-color: #A41034 ;
-    padding: 30px 40px;
-    color: white;
-    text-align: center;
-}
-
-/* Clear floats after the header */
-.header:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-/* Style the input */
-input {
+	background-color: #f44336; /* red */
     border: none;
-    width: 70%;
-    padding: 10px;
-    float: left;
-    font-size: 16px;
-}
-
-/* Style the "Add" button */
-.addBtn {
-    padding: 10px;
-    width: 20%;
-    background: #d9d9d9;
-    color: #555;
-    float: left;
+    color: white;
+    padding: 10px 40px;
+    border-radius: 8px;
     text-align: center;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
 }
 
-.addBtn:hover {
-    background-color: #bbb;
+button:hover {
+    background-color: #f44336; /* Green */
+    color: white;
 }
 
-.updateAction {
-  display: none;
-  padding: 3px;
-  float: none;
+input {
+	font-size: 18px;
+}
+
+input[type=checkbox] {
+	margin: 7px;
+}
+
+#header {
+	position: relative;
+	width: 900px;
+	margin: auto;
+}
+
+#header h2 {
+	margin-left: 10px;
+	vertical-align: middle;
+	font-size: 42px;
+	font-weight: bold;
+	text-decoration: none;
+	color: #000;
+}
+
+#content {
+	width: 880px;
+	margin: 0 auto;
+	padding: 10px;
+}
+
+#footer {
+	margin-top: 25px;
+	margin-bottom: 10px;
+	text-align: center;
+	font-size: 12px;
+	color: #999;
+}
+
+.demo-container {
+	box-sizing: border-box;
+	width: 850px;
+	height: 450px;
+	padding: 20px 15px 15px 15px;
+	margin: 15px auto 30px auto;
+	border: 1px solid #ddd;
+	background: #fff;
+	background: linear-gradient(#f6f6f6 0, #fff 50px);
+	background: -o-linear-gradient(#f6f6f6 0, #fff 50px);
+	background: -ms-linear-gradient(#f6f6f6 0, #fff 50px);
+	background: -moz-linear-gradient(#f6f6f6 0, #fff 50px);
+	background: -webkit-linear-gradient(#f6f6f6 0, #fff 50px);
+	box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+	-o-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-ms-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-moz-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	-webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.demo-placeholder {
+	width: 100%;
+	height: 100%;
+	font-size: 14px;
+	line-height: 1.2em;
+}
+
+.legend table {
+	border-spacing: 5px;
 }
