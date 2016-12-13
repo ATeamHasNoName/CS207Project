@@ -41,7 +41,7 @@ class TimeSeriesModel(db.Model):
 
 	CREATE TYPE level AS ENUM ('A', 'B', 'C', 'D', 'E', 'F');
 	CREATE TABLE timeseries (
-		tid CHAR(32) PRIMARY KEY,
+		tid CHAR() PRIMARY KEY,
 		mean float(16) NOT NULL,
 		std float(16) NOT NULL,
 		blarg float(16) NOT NULL,
@@ -51,7 +51,7 @@ class TimeSeriesModel(db.Model):
 	'''
 	__tablename__ = 'timeseries'
 	# Timeseries ID could be a string of up to length 32, not just restricted to Int
-	tid = db.Column(db.String(32), primary_key=True) 
+	tid = db.Column(db.String, primary_key=True) 
 	mean = db.Column(db.Float, nullable=False)
 	std = db.Column(db.Float, nullable=False)
 	blarg = db.Column(db.Float, nullable=False)
@@ -100,7 +100,7 @@ def get_timeseries():
 		# Specific query for tids, do not mix with the other range queries
 		tids = _split_commas(tid_in)
 		timeseries_queried = TimeSeriesModel.query.filter(
-			TimeSeries.tid.in_(tids)).order_by(TimeSeries.tid).all()
+			TimeSeriesModel.tid.in_(tids)).order_by(TimeSeriesModel.tid).all()
 		return jsonify(dict(metadata=timeseries_queried)), 200
 
 	# Extra credit: Support multiple queries at a time

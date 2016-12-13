@@ -99,6 +99,10 @@ def get_simquery():
 	# Sort closestTimeseries by keys
 	closestTimeseries = OrderedDict(sorted(closestTimeseries.items()))
 
+	log.info("metadata in simquery:")
+	log.info(metadata)
+	log.info(metadata["metadata"])
+
 	return jsonify({'timeseries': closestTimeseries, 'metadata': metadata["metadata"]}), 200
 
 @app.route('/simquery', methods=['POST'])
