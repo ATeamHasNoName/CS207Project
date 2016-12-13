@@ -19,14 +19,16 @@ TIMEOUT = 30
 SOCKETS = []
 BUFFERSIZE = 65536  # TODO: Increase??
 ARGUMENTS = 3
-LINE = "========================================================================"
+LINE = "============================================================================================"
 
 def Server():
     
     if(len(sys.argv) < ARGUMENTS):
         print ('You typed in too few arguments.\n Please use the format: python server.py IP_ADDRESS PORT_NUMBER\n')
         e(2)
-    
+   
+    num_of_client_requests = 0
+ 
     # Get port number from input:
     HOST = sys.argv[1]
     PORT = int(sys.argv[2])
@@ -73,19 +75,21 @@ def Server():
             # Message from user received:
             else:
                 try:
+                    # Increase number of client requests:
+                    num_of_client_requests += 1
+                    print("===================================== Client request #%i ==================================" % (num_of_client_requests))
+
                     # Fetch data from the incoming socket:
                     data = incomingSocket.recv(BUFFERSIZE)
                     data = data.decode('utf-8')
 
-                    print(LINE)
                     print("Server got an incoming request with data: %s\n" % (data))
                     ts_or_id = data[0]
                     length   = int(data[1:33]) # Length starts at character 1 and ends at 32
-                    ts_bytes    = data[33 : 33 + length]
-
+                    k_closest   = int(data[33:65], 2) # Length starts at character 33 and ends at 64
+                    ts_bytes    = data[65 : 65 + length]
                     # Store key if id was sent from client:
                     key = ts_bytes
-
                     ts_bytes = bytes(ts_bytes, encoding='utf-8')
                     
                     # Fetch TS:
@@ -96,7 +100,7 @@ def Server():
                         ts = Serialize().json_to_ts(ts_json)
                         
                         # Get top 5 ids and timeseries and convert to bytes:
-                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts)
+                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts, k_closest)
                     else:
                         # Fetch from ID:
                         ts_by_id = FindTimeSeriesByKey(key)
@@ -110,9 +114,9 @@ def Server():
                             continue
 
                         # Get top 5 ids and timeseries and convert to bytes:
-                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts_by_id)
+                        top_5_ids_and_ts_bytes = get_top_5_ids_and_ts_as_bytes(ts_by_id, k_closest)
 
-                    print("Sent closest k timeseries and ids to client")
+                    print("Sent closest %i timeseries and ids to client" % (k_closest))
                     print(LINE + "\n")
 
                     # If we have a connection then send data to the socket:
@@ -125,7 +129,7 @@ def Server():
                 except:
                     continue
 
-def get_top_5_ids_and_ts_as_bytes(ts):
+def get_top_5_ids_and_ts_as_bytes(ts, k_closest):
 	'''
 	Takes in a TimeSeries and fetches the closest 5 ids and timeseries and returns it as bytes.
 
@@ -138,8 +142,8 @@ def get_top_5_ids_and_ts_as_bytes(ts):
 		Closest 5 TimeSeries and their Ids as json bytes
 	'''
 	# Get top 5 closest TimeSeries and ids:
-	top_5_ids = Simsearch(ts, 5,0)
-	top_5_ts = Simsearch(ts, 5,1)
+	top_5_ids = Simsearch(ts, k_closest,0)
+	top_5_ts = Simsearch(ts, k_closest,1)
 
 	# Combine top 5 ids and ts to json:                        
 	top_5_ids_and_ts = Serialize().ids_and_ts_to_json(top_5_ids, top_5_ts)

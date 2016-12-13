@@ -13,19 +13,19 @@ from TimeSeries import TimeSeries
 from SizedContainerTimeSeriesInterface import SizedContainerTimeSeriesInterface
 
 
-
-ARGUMENTS = 5
+ARGUMENTS = 6
 BUFFERSIZE = 65536
 TIMEOUTLENGTH = 3
 
 def Client():
 
     if(len(sys.argv) < ARGUMENTS):
-        print ('You typed in too few arguments.\n Please use the format: python client.py IP_ADDRESS PORT_NUMBER TS_OR_ID VALUE\n')
+        print ('You typed in too few arguments.\n Please use the format: python client.py IP_ADDRESS PORT_NUMBER TS_OR_ID VALUE K_CLOSEST\n')
         return 2
 
-    host, port, ts_or_id, filename = readCommandLine()
+    host, port, ts_or_id, filename, k_closest = readCommandLine()
     tstext = 0
+
     # Get text as TimeSeries from file if ts_or_id == 0:
     if int(ts_or_id) == 1:
         ts_text = load_ts_file(filename)
@@ -56,11 +56,13 @@ def Client():
         return 3
 
     ts_to_json_LengthBinary = binaryLength32(len(ts_json))
+    k_closest_LengthBinary = binaryLength32(k_closest)
     # Format sent to server is:
     # 0/1: id is 0, ts is 1        [Starts at byte number 1]
     # length of id / ts in 32 bits [Starts at byte number 2]
-    # value of id or ts            [Starts at byte number 34]
-    sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + ts_json
+    # k_closest                    [Starts at byte number 34]
+    # value of id or ts            [Starts at byte number 66]
+    sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + k_closest_LengthBinary + ts_json
 
     #if (int(ts_or_id) == 0):
         #print("Sending id to server")
@@ -91,7 +93,8 @@ def readCommandLine():
     port = int(sys.argv[2])
     ts_or_id = sys.argv[3]
     filename = str(sys.argv[4])
-    return host, port, ts_or_id, filename
+    k_closest = int(sys.argv[5])
+    return host, port, ts_or_id, filename, k_closest
 
 def binaryLength32(length):
     '''
