@@ -23,7 +23,7 @@ def _requiredLengthOfTimeSeries():
 	'''
 	Returns the constant - the required length of input time series
 	'''
-	return 4
+	return 100
 
 @app.route('/428/<string:directory>/<path:path>')
 def send_static(directory, path):
