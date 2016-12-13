@@ -25,7 +25,7 @@ app = Flask(__name__)
 app.json_encoder = ProductJSONEncoder
 
 user = 'ubuntu'
-password = 'password' # TODO: Might have to change to cs207password
+password = 'cs207password'
 host = 'localhost'
 port = '5432'
 db = 'ubuntu' 
