@@ -37,6 +37,7 @@ url = 'postgresql://{}:{}@{}:{}/{}'
 url = url.format(user, password, host, port, db)
 app.config['SQLALCHEMY_DATABASE_URI'] = url # 'sqlite:////tmp/tasks.db'
 db = SQLAlchemy(app)
+num_vantage_points = 5
 
 
 class TimeSeriesModel(db.Model):
@@ -214,13 +215,14 @@ def _storeTimeSeriesInFSM(timeSeriesObject, key):
 
 	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
 	timeseriesIndexDB.set("timeseries_ids", timeseries_ids + "," + genKey)
+	timeseriesIndexDB.commit()
 	
 	# Also update vantage points
 	vantage_index_file_name = "db_vantageindex.dbdb"
 	vantageIndexDB = DB.connect(vantage_index_file_name)
 
 	# Calculate kernel dist from this new time series to each vantage, and update all 20 RBTs
-	for i in range(20): # 20 vantage points
+	for i in range(num_vantage_points): # 20 vantage points
 		vantageID = vantageIndexDB.get(str(i))
 		vantageTS = fsm.get(vantageID)
 		distanceFromInputTS = kernel_dist(timeSeriesObject, vantageTS)
