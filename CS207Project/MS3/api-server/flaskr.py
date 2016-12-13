@@ -234,6 +234,7 @@ def _storeTimeSeriesInFSM(timeSeriesObject, key):
 
 	# Check if there are more than 50 new time series being added. If so, regenerate vantage points.
 	if num_timeseries + 1 % 50 == 0:
+		log.info("Regenerating vantage points")
 		_regenerateVantagePoints()
 
 def _regenerateVantagePoints():
@@ -242,6 +243,8 @@ def _regenerateVantagePoints():
 	"""
 	# Taking all points in timeseries index, sample 20 new ones as vantage points, and rebuild red black trees
 	
+	fsm = FileStorageManager()
+
 	timeseries_index_file_name = "db_timeseriesindex.dbdb"
 	timeseriesIndexDB = DB.connect(timeseries_index_file_name)		
 
@@ -253,16 +256,49 @@ def _regenerateVantagePoints():
 	# Get actual vantage point ids
 	timeseries_ids = timeseriesIndexDB.get("timeseries_ids").split(',')
 
+	# Remove vantages
+	vantage_index_file_name = "db_vantageindex.dbdb"
+	
+	vantageIndexDB = DB.connect(vantage_index_file_name)
+	# Remove vantage indexes
+	for i in range(num_vantage_points):
+		vantageID = vantageIndexDB.get(str(i))
+		DB.remove("db_vantagepoint_" + vantageID + ".dbdb")
+	# Remove vantage files
+	DB.remove(vantage_index_file_name)
+
+	# Recreate vantages
+	
+	# Recreate vantage indexes
 	vantageIndexDB = DB.connect(vantage_index_file_name)
 	vantageLabel = 0
 	for i in vantage_point_indexes:
-		vantageID = all1000IDs[i]
+		vantageID = timeseries_ids[i]
 		vantageIndexDB.set(str(vantageLabel), vantageID)
 		vantageLabel += 1
 	vantageIndexDB.commit()
 
+	# Recreate vantage files, and also red black trees along with it
+	for i in vantage_point_indexes:
+		# For each vantage point do the following:
 
-	return ""
+		vantageID = timeseries_ids[i]
+		print('Working on vantage point with id: ', vantageID)
+
+		vantage_file_name = 'db_vantagepoint_'+ vantageID + '.dbdb'
+		vantageDB = DB.connect(vantage_file_name)
+		vantageTS = fsm.get(vantageID)
+
+		for j in range(num_timeseries):
+			# For each timeseries, calculate the distance to this vantage point and append it to RBT: 
+
+			otherID = timeseries_ids[j]
+			otherTS = fsm.get(otherID)
+			distance_bw = kernel_dist(otherTS, vantageTS)
+			vantageDB.set(str(distance_bw), otherID)
+
+		# Note: We commit after setting all 1000 distances so we make it more efficient
+		vantageDB.commit()
 
 @app.route('/timeseries', methods=['POST'])
 def create_timeseries():
@@ -280,11 +316,6 @@ def create_timeseries():
 	# Also store time series inside FSM
 	_storeTimeSeriesInFSM(timeSeriesObject=Serialize().json_to_ts(timeseries), key=tid)
 	# FileStorageManager().store(timeSeries=Serialize().json_to_ts(timeseries), key=tid)
-
-	# TODO: Update the time series index: db_timeseriesindex.dbdb
-	
-
-	# Regenerate vantage points if necessary
 	
 	return jsonify(timeseries), 201
 
