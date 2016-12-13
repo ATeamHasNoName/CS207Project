@@ -99,72 +99,7 @@
 
 
 
-		function readmetadata(evt) {
-			//Retrieve the first (and only!) File from the FileList object
-			//http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html#fbid=urjzZXW8lIf
-			var f = evt.target.files[0]; 
-
-			if (f) {
-			  var r = new FileReader();
-			  r.onload = function(e) {
-			  	  var closestK = document.getElementById("similar_ts_number").value.toString();
-			  	  console.log(closestK)
-			  	  var providedID = document.getElementById("ts-id").value.toString();
-			  	  console.log(providedID)
-
-				  //var contents = e.target.result;
-
-				  metadata_ts = convertFromJSONToTimeseriesArray(contents)
-				  //console.log(metadata_ts)
-				  meatadata_list = metadata_ts[0][1] //meatadata_list[0]
-				  console.log(meatadata_list)
-				  //console.log(convertFromJSONToTimeseriesArray(meatadata_list))
-				  //{blarg: 0.0976127, level: "C", mean: 0.525, std: 0.287228, tid: "123                             "}
-				  all_k_ts = metadata_ts[1][1]
-				  test_ts = convertFromNonStringJSONToTimeseriesArray(all_k_ts)
-				  //console.log(test_ts) //[Array[2], Array[2]]
-				  //console.log(test_ts[1]) //each time series
-				  //console.log(test_ts[1][1])
-				  //console.log(convertFromNonStringJSONToTimeseriesArray(test_ts[1][1])) //pass to list
-				  //console.log(test_ts.length)
-				  for(var i = 0, size = test_ts.length; i < size ; i++){
-				  	var legend_index = i+1
-				  	var item = test_ts[i][1]
-				  	ts = convertFromNonStringJSONToTimeseriesArray(item)
-				  	console.log(ts)
-				  	console.log("meow meow")
-				  	sub_item = { data: ts, label: "Time series "+ legend_index.toString() }
-				  	content_list_withinput.push(sub_item)
-				  }
-				  //grab_ts_from_test = convertFromNonStringJSONToTimeseriesArray(test_ts[1][1])
-				  //console.log(test_ts)
-
-
-				  //console.log(near_ts)
-
-				  // contents.forEach(function(x) {
-				  // 	console.log(x)
-				  // })
-				  // console.log(contents)
-				  console.log(type(contents))
-
-				alert( "Got the file" 
-					  +" name: " + f.name + "   "
-					  +" type: " + f.type + "   "
-					  +" size: " + f.size + " bytes"
-					  //PASS "contents" TO FUNCTION DOPLOT
-					  //doPlot("right", contents)
-				);  
-			  }
-			  r.readAsText(f);
-			} else { 
-			  alert("Failed to load file");
-			}
-		  }
-
-
-
-		document.getElementById('upload_ts_metadata').addEventListener('change', readmetadata, false);
+	
 
 
 		  $("#plot_all_ts").click(function () {
@@ -175,34 +110,52 @@
 				// Get closest k to provided id
 				$.get(BASE_URL + "/simquery?k="+ closestK + "&id=" + providedID, function(data, status) {
 					console.log(data);
-					console.log("meow")
+					console.log("meow");
 
-				  metadata_ts = convertFromJSONToTimeseriesArray(data)
+					var metadata_list = data["metadata"];
+
+
+				  // metadata_ts = convertFromJSONToTimeseriesArray(data)
 				  //console.log(metadata_ts)
-				  meatadata_list = metadata_ts[0][1] //meatadata_list[0]
-				  console.log(meatadata_list)
+				  // meatadata_list = metadata_ts[0][1] //meatadata_list[0]
+				  console.log(metadata_list);
 				  //console.log(convertFromJSONToTimeseriesArray(meatadata_list))
 				  //{blarg: 0.0976127, level: "C", mean: 0.525, std: 0.287228, tid: "123                             "}
-				  all_k_ts = metadata_ts[1][1]
-				  test_ts = convertFromNonStringJSONToTimeseriesArray(all_k_ts)
-				  console.log("grad all k TS")
-				  console.log("test_ts")
-				  //console.log(test_ts) //[Array[2], Array[2]]
-				  //console.log(test_ts[1]) //each time series
-				  //console.log(test_ts[1][1])
-				  //console.log(convertFromNonStringJSONToTimeseriesArray(test_ts[1][1])) //pass to list
-				  //console.log(test_ts.length)
-				  for(var i = 0, size = test_ts.length; i < size ; i++){
-				  	var legend_index = i+1
-				  	var item = test_ts[i][1]
-				  	ts = convertFromNonStringJSONToTimeseriesArray(item)
-				  	console.log(ts)
-				  	console.log("meow meow")
-				  	sub_item = { data: ts, label: "Time series "+ legend_index.toString() }
-				  	content_list_withinput.push(sub_item)
-				  }
+				  // all_k_ts = metadata_ts[1][1]
+				  var timeseries_dict = data["timeseries"];
+				  var k_count = 1;
+					$.each(timeseries_dict, function(tid, timeseriesObj) {
+					    console.log(tid);
+					    var transformed_ts = [];
+					    $.each(timeseriesObj, function(key, value) {
+					    	transformed_ts.push([key, value]);
+					    });
+					    sub_item = { data: transformed_ts, label: "Time series "+ k_count.toString() };
+					    content_list_withinput.push(sub_item);
+					    console.log("Done with ts");
+					    k_count += 1;
+					});
 
-				});
+
+				//   test_ts = convertFromNonStringJSONToTimeseriesArray(all_k_ts)
+				//   console.log("grad all k TS")
+				//   console.log("test_ts")
+				//   //console.log(test_ts) //[Array[2], Array[2]]
+				//   //console.log(test_ts[1]) //each time series
+				//   //console.log(test_ts[1][1])
+				//   //console.log(convertFromNonStringJSONToTimeseriesArray(test_ts[1][1])) //pass to list
+				//   //console.log(test_ts.length)
+				//   for(var i = 0, size = test_ts.length; i < size ; i++){
+				//   	var legend_index = i+1
+				//   	var item = test_ts[i][1]
+				//   	ts = convertFromNonStringJSONToTimeseriesArray(item)
+				//   	console.log(ts)
+				//   	console.log("meow meow")
+				//   	sub_item = { data: ts, label: "Time series "+ legend_index.toString() }
+				//   	content_list_withinput.push(sub_item)
+				//   }
+
+				// });
 
 
 			doPlot("right", content_list_withinput);
