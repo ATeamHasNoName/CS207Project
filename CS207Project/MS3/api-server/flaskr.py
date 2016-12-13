@@ -41,7 +41,7 @@ class TimeSeriesModel(db.Model):
 
 	CREATE TYPE level AS ENUM ('A', 'B', 'C', 'D', 'E', 'F');
 	CREATE TABLE timeseries (
-		tid CHAR() PRIMARY KEY,
+		tid VARCHAR(32) PRIMARY KEY,
 		mean float(16) NOT NULL,
 		std float(16) NOT NULL,
 		blarg float(16) NOT NULL,
@@ -155,9 +155,13 @@ def get_timeseries():
 
 	return jsonify(dict(metadata=timeseries_queried)), 200
 
-@app.route('/timeseries', methods=['POST'])
-def create_timeseries():
-	log.info("we're here in timeseries")
+@app.route('/generatemetadata', methods=['POST'])
+def generate_metadata():
+	"""
+	Being used by socket server to generate meta data for the 1000 time series
+	"""
+	log.info("ARRIVED AT GENERATE METADATA")
+	log.info(request.json)
 	# Request must be a JSON object that has the keys: tid and timeseries
 	if (not request.json or not 'id' in request.json or not 'timeseries' in request.json):
 		abort(400)
@@ -166,12 +170,17 @@ def create_timeseries():
 	timeseries = request.json['timeseries']
 	if not isinstance(timeseries, dict):
 		abort(400)
-	
+	_generate_metadata(tid=tid, timeseries=timeseries)
+	return jsonify({"tid": tid}), 201
+
+def _generate_metadata(tid, timeseries):
+	"""
+	Private helper function to generate metadata with input tid and timeseries JSON
+	"""
 	# Get timeseries metadata and store it in PostgreSQL
 	
 	# Grab all the values of the timeseries
 	values = list(timeseries.values())
-	log.info(values)
 	mean = np.mean(values)
 	std = np.std(values, ddof=1)
 	# To safeguard against timeseries with only one value which will return NaN std, we set std to 0 if it is NaN
@@ -186,6 +195,19 @@ def create_timeseries():
 	prod = TimeSeriesModel(tid=tid, mean=mean, std=std, blarg=blarg, level=level)
 	db.session.add(prod)
 	db.session.commit()
+
+@app.route('/timeseries', methods=['POST'])
+def create_timeseries():
+	# Request must be a JSON object that has the keys: tid and timeseries
+	if (not request.json or not 'id' in request.json or not 'timeseries' in request.json):
+		abort(400)
+	tid = request.json['id']
+	# Timeseries is dictionary/JSON of the format of {'key': value}
+	timeseries = request.json['timeseries']
+	if not isinstance(timeseries, dict):
+		abort(400)
+	
+	_generate_metadata(tid=tid, timeseries=timeseries)
 
 	# Also store time series inside FSM
 	FileStorageManager().store(timeSeries=Serialize().json_to_ts(timeseries), key=tid)

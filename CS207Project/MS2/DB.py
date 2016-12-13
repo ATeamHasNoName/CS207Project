@@ -1228,7 +1228,7 @@ class DB(object):
 	associated storage.
 	"""
 	def connect(dbname):
-		BASE_PATH = "/Users/leonardloo/Desktop/Harvard Classes/CS207/CS207Project/CS207Project/MS3/"
+		BASE_PATH = "/home/www/DB/"
 		try:
 			f = open(BASE_PATH + dbname, 'r+b')
 		except IOError:
@@ -1237,5 +1237,5 @@ class DB(object):
 		return DBDB(f)
 
 	def remove(dbname):
-		BASE_PATH = "/Users/leonardloo/Desktop/Harvard Classes/CS207/CS207Project/CS207Project/MS3/"
+		BASE_PATH = "/home/www/DB/"
 		os.remove(BASE_PATH + dbname)

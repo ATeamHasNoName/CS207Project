@@ -133,13 +133,12 @@ def Simsearch(inputTS, k, id_or_ts):
 			# First convert time series object to time series JSON
 			timeseriesJSON = {}
 			for (time_, value_) in ts.items():
-				timeseriesJSON[time_] = value_
+				timeseriesJSON[str(time_)] = value_
 
-			# APIServer = 'http://{}:{}/timeseries'.format("localhost", 5001)
-			# response = requests.post(APIServer, json={'id': tsID, 'timeseries': timeseriesJSON})
-			# if response.status_code not in [200, 201]:
-				# Remove raising the error when run live
-				# raise ValueError('Failed to store one out of 1000 time series metadata in PostgreSQL')
+			APIServer = 'http://{}:{}/generatemetadata'.format("localhost", 5001)
+			response = requests.post(APIServer, json={'id': tsID, 'timeseries': timeseriesJSON})
+			if response.status_code not in [200, 201]:
+				raise ValueError('Failed to store one out of 1000 time series metadata in PostgreSQL')
 
 			# Append the ID to the list and keep going
 			all1000IDs.append(str(tsID))

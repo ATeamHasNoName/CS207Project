@@ -18,7 +18,7 @@ printf "\nMoving Repos Assets to www...\n"
 psql -c "DROP TABLE timeseries;"
 psql -c "CREATE TYPE level AS ENUM ('A', 'B', 'C', 'D', 'E', 'F');"
 psql -c "CREATE TABLE timeseries (
-    tid CHAR(32) PRIMARY KEY,
+    tid VARCHAR(32) PRIMARY KEY,
     mean float(16) NOT NULL,
     std float(16) NOT NULL,
     blarg float(16) NOT NULL,
@@ -38,11 +38,16 @@ printf "\nStarting Application Servers...\n"
 cd /home/www/CS207Project/CS207Project/MS3/api-server/ && nohup python3 flaskr.py & disown
 cd /home/www/CS207Project/CS207Project/MS3/app-server/ && nohup python3 run.py & disown
 
+sudo mkdir /home/www/DB
+
 # Permissions needed to be given, if not write/delete of files cannot be done
 sudo chmod 777 -R /home/www
 
 # Install portalocker
 cd /home/www/CS207Project/CS207Project/MS2/portalocker && sudo python3 setup.py install && cd -
+
+# Run socket server and generate vantage points / time series
+cd /home/www/CS207Project/CS207Project/MS3/socket-server/ && nohup python3 server.py localhost 5002 0 & disown
 
 printf "\nPython Processes...\n"
 ps aux|grep python3

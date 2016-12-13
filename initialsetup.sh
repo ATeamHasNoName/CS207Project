@@ -8,3 +8,4 @@ mv cs207_aws_ec2_postgres_test.py ../cs207_aws_ec2_postgres_test.py
 cd ..
 chmod a+x cs207_aws_ec2_stack.sh
 sudo ./cs207_aws_ec2_stack.sh
+sudo pip install scipy
