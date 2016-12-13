@@ -1,7 +1,9 @@
 import os
 import logging
-import socket
 import select
+import socket
+import signal
+import json
 from app import app
 from collections import OrderedDict
 from app.service import APIService
@@ -11,7 +13,7 @@ from flask import Flask, request, abort, redirect, url_for, jsonify, make_respon
 import sys
 
 sys.path.append(os.path.abspath("../")); from TSDBSerialize import Serialize
-# sys.path.append(os.path.abspath("../../MS2")); from FileStorageManager import FileStorageManager
+sys.path.append(os.path.abspath("../../MS2")); from DB import DB
 sys.path.append(os.path.abspath("../../MS1")); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
@@ -34,11 +36,16 @@ def send_static(directory, path):
 @app.route('/')
 def home():
 	"""
-	Single page with flot charts is presened at /
+	Single page with flot charts is presented at /
 	"""
 	# TODO: To remove this
-	timeseries = service.get_timeseries()
-	return render_template('index.html', timeseries=timeseries)
+	# timeseries = service.get_timeseries()
+	# Return all indexes back to index.html to display in drop down list
+	timeseries_index_file_name = "db_timeseriesindex.dbdb"
+	timeseriesIndexDB = DB.connect(timeseries_index_file_name)
+	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
+	# Convert comma-separated ids into arrays
+	return render_template('index.html', timeseries=timeseries_ids.split(','))
 
 @app.route('/timeseries', methods=['GET'])
 def get_timeseries():
@@ -105,13 +112,13 @@ def _binaryLength32(length):
 	"""
 	return format(length, '032b')
 
-def _getClosestTimeSeries_from_socket_server(k, ts_or_id, timeseriesID=None, timeseriesJSON=None):
+def _getClosestTimeSeries_from_socket_server(k_closest, ts_or_id, timeseriesID=None, timeseriesJSON=None):
 	"""
 	Function to connect to the socket server and pass over the timeseries ID or time series JSON 
 	in order to get the closest time series.
 	"""
 	host = "localhost"
-	port = "5002"
+	port = 5002
 	BUFFERSIZE = 65536
 
 	# Converts either ID or JSON
@@ -136,12 +143,14 @@ def _getClosestTimeSeries_from_socket_server(k, ts_or_id, timeseriesID=None, tim
 		raise ValueError('Issue with socket server')
 
 	ts_to_json_LengthBinary = _binaryLength32(len(ts_json))
+	k_closest_LengthBinary = _binaryLength32(k_closest)
 
-	# Format sent to server is:
-	# 0/1: id is 0, ts is 1        [Starts at byte number 1]
-	# length of id / ts in 32 bits [Starts at byte number 2]
-	# value of id or ts            [Starts at byte number 34]
-	sendTsOrIdToServer = ts_or_id + ts_to_json_LengthBinary + ts_json
+    # Format sent to server is:
+    # 0/1: id is 0, ts is 1        [Starts at byte number 1]
+    # length of id / ts in 32 bits [Starts at byte number 2]
+    # k_closest                    [Starts at byte number 34]
+    # value of id or ts            [Starts at byte number 66]
+	sendTsOrIdToServer = str(ts_or_id) + ts_to_json_LengthBinary + k_closest_LengthBinary + ts_json
 
 	if (int(ts_or_id) == 0):
 		print("Sending id to server")
@@ -159,13 +168,15 @@ def _getClosestTimeSeries_from_socket_server(k, ts_or_id, timeseriesID=None, tim
 
 		for incomingSocket in sockets:
 			if incomingSocket == s:
-				print("Got a response from server.\n")
-				closestTimeSeriesBuffer = incomingSocket.recv(BUFFERSIZE)
-				closestTimeSeriesBuffer = closestTimeSeriesBuffer.decode()
+				log.info("Got a response from server.\n")
+				closestTimeseriesBuffer = incomingSocket.recv(BUFFERSIZE)
+				closestTimeseriesBuffer = closestTimeseriesBuffer.decode()
 				# Converts buffer to JSON string
-				closestTimeSeriesString = str(closestTimeSeriesBuffer)
+				closestTimeseriesString = str(closestTimeseriesBuffer).replace("'", '"')
 				s.shutdown(socket.SHUT_RDWR)
 				s.close()
+				log.info(closestTimeseriesString)
+
 				# Convert JSON string to JSON object and return
 				return json.loads(closestTimeseriesString)
 
@@ -184,11 +195,10 @@ def get_simquery():
 		k = 5
 	
 	# TODO: Send to socket server
-	# closestTimeseries = _getClosestTimeSeries_from_socket_server(k=k, ts_or_id=0, timeseriesID=tid)
+	closestTimeseries = _getClosestTimeSeries_from_socket_server(k_closest=k, ts_or_id=0, timeseriesID=tid)
 
 	# Get back nearest k TimeSeries json in {"id1": {"key1": v1, ...}, ...} format
 	
-	closestTimeseries = {"111": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.6}, "123": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.7}}
 	# Get the metadata of the closest timeseries from the API
 	tid_in = ','.join(map(str, closestTimeseries.keys()))
 	metadata = service.get_timeseries(tid_in=tid_in)
@@ -219,11 +229,9 @@ def post_simquery():
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
 
-	# TODO: Convert timeseries json and k to bytes and send to socket server
-	# closestTimeseries = _getClosestTimeSeries_from_socket_server(k=k, ts_or_id=1, timeseriesJSON=timeseries)
+	# TODO: test this with actual client code
+	closestTimeseries = _getClosestTimeSeries_from_socket_server(k_closest=k, ts_or_id=1, timeseriesJSON=timeseries)
 
-	# Get back nearest k TimeSeries json in {"id1": {"key1": v1, ...}, ...} format
-	closestTimeseries = {"111": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.6}, "123": {"2": 0.2, "3": 0.4, "4": 0.5, "5": 0.7}}
 	# Get the metadata of the closest timeseries from the API
 	tid_in = ','.join(map(str, closestTimeseries.keys()))
 	metadata = service.get_timeseries(tid_in=tid_in)

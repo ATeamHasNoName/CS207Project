@@ -5,7 +5,6 @@ import socket
 import signal
 import json
 import numpy as np
-from Distance_from_known_ts import Simsearch
 sys.path.append("../")
 from TSDBSerialize import Serialize
 sys.path.append('../MS1/')

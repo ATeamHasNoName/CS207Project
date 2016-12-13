@@ -6,8 +6,12 @@ from flask import Flask, request, abort, jsonify, make_response
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder
 
+# Duplicate corr here to allow regeneration of vantage points (Extra Credit)
+from _corr import *
 sys.path.append('../'); from TSDBSerialize import Serialize
-sys.path.append('../../MS2/'); from FileStorageManager import FileStorageManager
+sys.path.append('../../MS2/'); 
+from FileStorageManager import FileStorageManager
+from DB import DB
 sys.path.append('../../MS1/'); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
@@ -160,8 +164,6 @@ def generate_metadata():
 	"""
 	Being used by socket server to generate meta data for the 1000 time series
 	"""
-	log.info("ARRIVED AT GENERATE METADATA")
-	log.info(request.json)
 	# Request must be a JSON object that has the keys: tid and timeseries
 	if (not request.json or not 'id' in request.json or not 'timeseries' in request.json):
 		abort(400)
@@ -196,6 +198,50 @@ def _generate_metadata(tid, timeseries):
 	db.session.add(prod)
 	db.session.commit()
 
+def _storeTimeSeriesInFSM(timeSeriesObject, key):
+	"""
+	Stores the time series object in FSM. This is being called by /timeseries POST on creation of a new time series.
+	"""
+	fsm = FileStorageManager()
+	genKey = fsm.store(timeSeries=timeSeriesObject, key=key)
+	
+	# Update time series index
+	timeseries_index_file_name = "db_timeseriesindex.dbdb"
+	timeseriesIndexDB = DB.connect(timeseries_index_file_name)		
+	
+	num_timeseries = int(timeseriesIndexDB.get("number_of_timeseries"))
+	timeseriesIndexDB.set("number_of_timeseries", str(num_timeseries + 1))
+
+	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
+	timeseriesIndexDB.set("timeseries_ids", timeseries_ids + "," + genKey)
+	
+	# Also update vantage points
+	vantage_index_file_name = "db_vantageindex.dbdb"
+	vantageIndexDB = DB.connect(vantage_index_file_name)
+
+	# Calculate kernel dist from this new time series to each vantage, and update all 20 RBTs
+	for i in range(20): # 20 vantage points
+		vantageID = vantageIndexDB.get(str(i))
+		vantageTS = fsm.get(vantageID)
+		distanceFromInputTS = kernel_dist(timeSeriesObject, vantageTS)
+		# Store this distance and the time series key inside the respective RBT
+		vantage_file_name = 'db_vantagepoint_'+ vantageID + '.dbdb'
+		vantageDB = DB.connect(vantage_file_name)
+		vantageDB.set(str(distanceFromInputTS), genKey)
+		vantageDB.commit()
+
+	# Check if there are more than 50 new time series being added. If so, regenerate vantage points.
+	if num_timeseries + 1 % 50 == 0:
+		_regenerateVantagePoints()
+
+def _regenerateVantagePoints():
+	"""
+	Vantage points are regenerated for every 50 time series added
+	"""
+	# Taking all points in timeseries index, sample 20 new ones as vantage points, and rebuild red black trees
+	
+	return ""
+
 @app.route('/timeseries', methods=['POST'])
 def create_timeseries():
 	# Request must be a JSON object that has the keys: tid and timeseries
@@ -210,7 +256,13 @@ def create_timeseries():
 	_generate_metadata(tid=tid, timeseries=timeseries)
 
 	# Also store time series inside FSM
-	FileStorageManager().store(timeSeries=Serialize().json_to_ts(timeseries), key=tid)
+	_storeTimeSeriesInFSM(timeSeriesObject=Serialize().json_to_ts(timeseries), key=tid)
+	# FileStorageManager().store(timeSeries=Serialize().json_to_ts(timeseries), key=tid)
+
+	# TODO: Update the time series index: db_timeseriesindex.dbdb
+	
+
+	# Regenerate vantage points if necessary
 	
 	return jsonify(timeseries), 201
 

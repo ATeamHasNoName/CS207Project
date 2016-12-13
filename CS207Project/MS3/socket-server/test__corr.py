@@ -5,7 +5,7 @@ import random
 from _corr import *
 import unittest
 from scipy.stats import norm
-#from Distance_from_known_ts import tsmaker
+# from Distance_from_known_ts import tsmaker
 
 def test_stand():
 	ts1 = stand(tsmaker(0.5, 0.1, random.uniform(0,10)))

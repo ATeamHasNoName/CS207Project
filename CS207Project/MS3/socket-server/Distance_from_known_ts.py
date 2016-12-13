@@ -22,62 +22,6 @@ def FindTimeSeriesByKey(key):
 	ts = fsm.get(key)
 	return ts
 
-def StoreTimeSeries(timeSeriesObject, key):
-	"""
-	Stores the time series object in FSM. This is being called by /timeseries POST on creation of a new time series.
-	"""
-	fsm = FileStorageManager()
-	genKey = fsm.store(timeSeries=timeSeriesObject, key=key)
-	
-	# Update time series index
-	timeseries_index_file_name = "db_timeseriesindex.dbdb"
-	timeseriesIndexDB = DB.connect(timeseries_index_file_name)		
-	
-	num_timeseries = int(timeseriesIndexDB.get("number_of_timeseries"))
-	timeseriesIndexDB.set("number_of_timeseries", str(num_timeseries + 1))
-
-	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
-	timeseriesIndexDB.set("timeseries_ids", timeseries_ids + "," + genKey)
-	
-	# Also update vantage points
-	vantage_index_file_name = "db_vantageindex.dbdb"
-	vantageIndexDB = DB.connect(vantage_index_file_name)
-
-	# Calculate kernel dist from this new time series to each vantage, and update all 20 RBTs
-	for i in range(20): # 20 vantage points
-		vantageID = vantageIndexDB.get(str(i))
-		vantageTS = fsm.get(vantageID)
-		distanceFromInputTS = kernel_dist(timeSeriesObject, vantageTS)
-		# Store this distance and the time series key inside the respective RBT
-		vantage_file_name = 'db_vantagepoint_'+ vantageID + '.dbdb'
-		vantageDB = DB.connect(vantage_file_name)
-		vantageDB.set(str(distanceFromInputTS), genKey)
-		vantageDB.commit()
-
-	# Check if there are more than 50 new time series being added. If so, regenerate vantage points.
-	if num_timeseries + 1 % 50 == 0:
-		_regenerateVantagePoints()
-
-	# No need to return
-
-def _regenerateVantagePoints():
-	"""
-	Vantage points are regenerated for every 50 time series added
-	"""
-	# Taking all points in timeseries index, sample 20 new ones as vantage points, and rebuild red black trees
-	
-	return ""
-
-def GetAllTimeSeriesIDS():
-	"""
-	This is being used by index.html to display dropdown list of all time series IDs
-	"""
-	timeseries_index_file_name = "db_timeseriesindex.dbdb"
-	timeseriesIndexDB = DB.connect(timeseries_index_file_name)
-	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
-	# Convert comma-separated ids into arrays
-	return timeseries_ids.split(',')
-
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
 def Simsearch(inputTS, k, id_or_ts):
 	num_vantage_points = 5
@@ -136,9 +80,9 @@ def Simsearch(inputTS, k, id_or_ts):
 				timeseriesJSON[str(time_)] = value_
 
 			APIServer = 'http://{}:{}/generatemetadata'.format("localhost", 5001)
-			response = requests.post(APIServer, json={'id': tsID, 'timeseries': timeseriesJSON})
-			if response.status_code not in [200, 201]:
-				raise ValueError('Failed to store one out of 1000 time series metadata in PostgreSQL')
+			# response = requests.post(APIServer, json={'id': tsID, 'timeseries': timeseriesJSON})
+			# if response.status_code not in [200, 201]:
+				# raise ValueError('Failed to store one out of 1000 time series metadata in PostgreSQL')
 
 			# Append the ID to the list and keep going
 			all1000IDs.append(str(tsID))
@@ -235,53 +179,4 @@ def Simsearch(inputTS, k, id_or_ts):
 		top_TS.append(fsm.get(top_IDs))
 
 	return(top_TS)
-
-
-
-	#print('IDs of the top ', num_top,'time series are',','.join(map(str,top_ID_distance_dict)))
-
-# Get actual time series objects
-# TODO:
-
-
-# corr=0
-# closest = 'dummy'
-# distances_from_vantage_points = []
-# v=[]
-# x=[]
-
-# filename='vantage_index.txt'
-# fileh=open(filename,'r')
-# vantageids=fileh.read()
-# vantageids=vantageids[1:len(vantageids)-1]
-# vantageids.replace(" ","")
-# list=vantageids.split(',')
-
-# v=[]
-# for vp in list:
-# 	ts=read_ts(vp.replace(" ",""))
-# 	v.append(ts)
-
-# # Find closest vantage point
-# for i in range(num_vantage_points):
-# 	if kernel_dist(test_ts,v[i]) > corr:
-# 		corr = kernel_dist(test_ts,v[i])
-# 		closest = str(i)
-
-
-
-# #Define region between them
-# max_region=2*corr
-
-# dbfilename='db_vantagepoints'+closest
-# vantagedb=DB.connect(dbfilename+'.dbdb')
-# dist=vantagedb.chop(str(max_region))
-# rboutputs={}
-# for i in dist:
-# 	(a,b)=i
-# 	rboutputs[b]=a;
-
-
-# sortedrbouts=sorted(rboutputs, key=rboutputs.get, reverse=True)[:num_top]
-# print('IDs of the top ',num_top,'time series are',','.join(map(str,sortedrbouts)))
 

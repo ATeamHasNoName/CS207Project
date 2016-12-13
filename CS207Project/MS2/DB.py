@@ -1228,6 +1228,7 @@ class DB(object):
 	associated storage.
 	"""
 	def connect(dbname):
+		# BASE_PATH = ""
 		BASE_PATH = "/home/www/DB/"
 		try:
 			f = open(BASE_PATH + dbname, 'r+b')
@@ -1237,5 +1238,6 @@ class DB(object):
 		return DBDB(f)
 
 	def remove(dbname):
+		# BASE_PATH = ""
 		BASE_PATH = "/home/www/DB/"
 		os.remove(BASE_PATH + dbname)
