@@ -242,6 +242,26 @@ def _regenerateVantagePoints():
 	"""
 	# Taking all points in timeseries index, sample 20 new ones as vantage points, and rebuild red black trees
 	
+	timeseries_index_file_name = "db_timeseriesindex.dbdb"
+	timeseriesIndexDB = DB.connect(timeseries_index_file_name)		
+
+	num_timeseries = int(timeseriesIndexDB.get("number_of_timeseries"))
+
+	# Sample new vantage point indexes
+	vantage_point_indexes = random.sample(range(num_timeseries), num_vantage_points)
+
+	# Get actual vantage point ids
+	timeseries_ids = timeseriesIndexDB.get("timeseries_ids").split(',')
+
+	vantageIndexDB = DB.connect(vantage_index_file_name)
+	vantageLabel = 0
+	for i in vantage_point_indexes:
+		vantageID = all1000IDs[i]
+		vantageIndexDB.set(str(vantageLabel), vantageID)
+		vantageLabel += 1
+	vantageIndexDB.commit()
+
+
 	return ""
 
 @app.route('/timeseries', methods=['POST'])

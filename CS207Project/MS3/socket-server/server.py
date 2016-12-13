@@ -90,6 +90,7 @@ def Server():
 					ts_or_id = data[0]
 					length   = int(data[1:33]) # Length starts at character 1 and ends at 32
 					k_closest   = int(data[33:65], 2) # Length starts at character 33 and ends at 64
+					print(k_closest)
 					ts_bytes    = data[65 : 65 + length]
 					# Store key if id was sent from client:
 					key = ts_bytes

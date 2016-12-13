@@ -143,7 +143,7 @@ def _getClosestTimeSeries_from_socket_server(k_closest, ts_or_id, timeseriesID=N
 		raise ValueError('Issue with socket server')
 
 	ts_to_json_LengthBinary = _binaryLength32(len(ts_json))
-	k_closest_LengthBinary = _binaryLength32(k_closest)
+	k_closest_LengthBinary = _binaryLength32(int(k_closest))
 
     # Format sent to server is:
     # 0/1: id is 0, ts is 1        [Starts at byte number 1]
@@ -190,7 +190,7 @@ def get_simquery():
 	if tid is None:
 		abort(400, 'id param is not provided for simquery')
 	k = request.args.get('k')
-	if k is None or not isinstance(k, int):
+	if k is None:
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
 	
@@ -225,7 +225,7 @@ def post_simquery():
 	if not isinstance(timeseries, dict) or len(timeseries) != _requiredLengthOfTimeSeries():
 		abort(400, ('Input time series is not a json object or its length of %s is not %s') % (str(len(timeseries)), str(_requiredLengthOfTimeSeries())))
 	k = request.json['k']
-	if k is None or not isinstance(k, int):
+	if k is None:
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
 
