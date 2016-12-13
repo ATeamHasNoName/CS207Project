@@ -5,3 +5,4 @@ TimeSeries.ipynb
 *.txt
 *.pem
 *.dbdb
+**/*.pem
