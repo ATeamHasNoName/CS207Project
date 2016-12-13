@@ -4,6 +4,7 @@ import os
 import numpy as np
 import sys
 from _corr import kernel_dist
+import requests
 import pprint
 sys.path.append('../../MS1')
 from TimeSeries import TimeSeries
@@ -14,9 +15,68 @@ from FileStorageManager import FileStorageManager
 from DB import *
 
 def FindTimeSeriesByKey(key):
+	"""
+	Gets the time series object in FSM from its key. This is being called by /timeseries/<id> GET.
+	"""
 	fsm = FileStorageManager()
 	ts = fsm.get(key)
 	return ts
+
+def StoreTimeSeries(timeSeriesObject, key):
+	"""
+	Stores the time series object in FSM. This is being called by /timeseries POST on creation of a new time series.
+	"""
+	fsm = FileStorageManager()
+	genKey = fsm.store(timeSeries=timeSeriesObject, key=key)
+	
+	# Update time series index
+	timeseries_index_file_name = "db_timeseriesindex.dbdb"
+	timeseriesIndexDB = DB.connect(timeseries_index_file_name)		
+	
+	num_timeseries = int(timeseriesIndexDB.get("number_of_timeseries"))
+	timeseriesIndexDB.set("number_of_timeseries", str(num_timeseries + 1))
+
+	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
+	timeseriesIndexDB.set("timeseries_ids", timeseries_ids + "," + genKey)
+	
+	# Also update vantage points
+	vantage_index_file_name = "db_vantageindex.dbdb"
+	vantageIndexDB = DB.connect(vantage_index_file_name)
+
+	# Calculate kernel dist from this new time series to each vantage, and update all 20 RBTs
+	for i in range(20): # 20 vantage points
+		vantageID = vantageIndexDB.get(str(i))
+		vantageTS = fsm.get(vantageID)
+		distanceFromInputTS = kernel_dist(timeSeriesObject, vantageTS)
+		# Store this distance and the time series key inside the respective RBT
+		vantage_file_name = 'db_vantagepoint_'+ vantageID + '.dbdb'
+		vantageDB = DB.connect(vantage_file_name)
+		vantageDB.set(str(distanceFromInputTS), genKey)
+		vantageDB.commit()
+
+	# Check if there are more than 50 new time series being added. If so, regenerate vantage points.
+	if num_timeseries + 1 % 50 == 0:
+		_regenerateVantagePoints()
+
+	# No need to return
+
+def _regenerateVantagePoints():
+	"""
+	Vantage points are regenerated for every 50 time series added
+	"""
+	# Taking all points in timeseries index, sample 20 new ones as vantage points, and rebuild red black trees
+	
+	return ""
+
+def GetAllTimeSeriesIDS():
+	"""
+	This is being used by index.html to display dropdown list of all time series IDs
+	"""
+	timeseries_index_file_name = "db_timeseriesindex.dbdb"
+	timeseriesIndexDB = DB.connect(timeseries_index_file_name)
+	timeseries_ids = timeseriesIndexDB.get("timeseries_ids")
+	# Convert comma-separated ids into arrays
+	return timeseries_ids.split(',')
 
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
 def Simsearch(inputTS, k, id_or_ts):
@@ -44,7 +104,6 @@ def Simsearch(inputTS, k, id_or_ts):
 		v = norm.pdf(t, m, s) + j*np.random.randn(100)
 		return TimeSeries(values=v,times=t)
 
-
 	# Check if we have cached by verifying the existence of this file
 	vantage_index_file_name = "db_vantageindex.dbdb"
 	fsm = FileStorageManager()
@@ -57,7 +116,7 @@ def Simsearch(inputTS, k, id_or_ts):
 		
 	except KeyError:
 		# Have to delete file that is created in the try block above or this will cause the connect in Step 2 to crash
-		os.remove(vantage_index_file_name)
+		DB.remove(vantage_index_file_name)
 		
 		print('Not stored in disk, calculate distances')
 
@@ -66,9 +125,24 @@ def Simsearch(inputTS, k, id_or_ts):
 		# Step 1: Generation of 1000 time series
 		for i in range(num_of_timeseries):
 			ts=tsmaker(4,2,8)
-			
+
+			# Store this time series in FSM
 			tsID = fsm.store(timeSeries = ts)
-			all1000IDs.append(tsID)
+
+			# Send the time series over to API Server to update metadata
+			# First convert time series object to time series JSON
+			timeseriesJSON = {}
+			for (time_, value_) in ts.items():
+				timeseriesJSON[time_] = value_
+
+			# APIServer = 'http://{}:{}/timeseries'.format("localhost", 5001)
+			# response = requests.post(APIServer, json={'id': tsID, 'timeseries': timeseriesJSON})
+			# if response.status_code not in [200, 201]:
+				# Remove raising the error when run live
+				# raise ValueError('Failed to store one out of 1000 time series metadata in PostgreSQL')
+
+			# Append the ID to the list and keep going
+			all1000IDs.append(str(tsID))
 
 		# Step 2: Generate 20 random indices as vantage point id's, and store them in a .txt file as an Index
 		vantage_point_indexes = random.sample(range(num_of_timeseries), num_vantage_points)
@@ -102,6 +176,15 @@ def Simsearch(inputTS, k, id_or_ts):
 
 			# Note: We commit after setting all 1000 distances so we make it more efficient
 			vantageDB.commit()	
+
+		# Step 4: Store indexes of the 1000 Time series generated so we can reference them later
+		timeseries_index_file_name = "db_timeseriesindex.dbdb"
+		timeseriesIndexDB = DB.connect(timeseries_index_file_name)
+		# Store number of time series stored
+		timeseriesIndexDB.set("number_of_timeseries", "1000")
+		# Store all the ids in one long list to minimize I/O - it's more efficient that way
+		timeseriesIndexDB.set("timeseries_ids", ','.join(all1000IDs)) # Encode time series IDs into a comma-separated String
+		timeseriesIndexDB.commit()
 
 	# At this stage, we have all databases, we can work out the top k similar timeseries to return
 

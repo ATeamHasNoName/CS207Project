@@ -67,7 +67,7 @@ class DBTest(unittest.TestCase):
 		self.root = self.rbtree._follow(self.rbtree._tree_ref)
 
 	def tearDown(self):
-		os.remove(self.getName())
+		DB.remove(self.getName())
 		del self.dbname
 		del self.storage
 		del self.rbtree
@@ -108,7 +108,7 @@ class DBTest(unittest.TestCase):
 		ref._address = 428
 		referent = ref.get(storage)
 		self.assertEquals(referent, '')
-		os.remove('test.dbdb')
+		DB.remove('test.dbdb')
 	
 	def test_DBDB_not_closed(self):
 		dbdb = DB.connect('dd.dbdb')
@@ -116,7 +116,7 @@ class DBTest(unittest.TestCase):
 		dbdb.set(5,'5')
 		with self.assertRaises(KeyError):
 			val = dbdb.get(5)	
-		os.remove('dd.dbdb')
+		DB.remove('dd.dbdb')
 	
 	def test_DBDB_commit(self):
 		dbdb = DB.connect('dd.dbdb')
@@ -124,7 +124,7 @@ class DBTest(unittest.TestCase):
 		val = dbdb.get(5)
 		commitRes = dbdb.commit()
 		self.assertTrue(commitRes == None)
-		os.remove('dd.dbdb')
+		DB.remove('dd.dbdb')
 
 	def test_balanced_one_node(self):
 		rbtree = BinaryTree(self.storage)

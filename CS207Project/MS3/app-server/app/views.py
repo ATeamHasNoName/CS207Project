@@ -72,7 +72,6 @@ def create_timeseries():
 	# Timeseries must be correct length
 	response = service.create_timeseries(tid, timeseries)
 	# TODO: Send tid and timeseries to socket server to store it there
-	
 
 	return jsonify(response), 201
 
@@ -154,21 +153,21 @@ def _getClosestTimeSeries_from_socket_server(k, ts_or_id, timeseriesID=None, tim
 
 	while True:
 		empty = []
-
-		# Fetch sockets from server:
+		# Fetch sockets from server
 		availableSockets = [sys.stdin, s]
 		sockets, write, error = select.select(availableSockets, empty, empty)
 
 		for incomingSocket in sockets:
 			if incomingSocket == s:
 				print("Got a response from server.\n")
-				buffer = incomingSocket.recv(BUFFERSIZE)
-				buffer = buffer.decode()
-				sys.stdout.write(str(buffer))
-				# TODO: Return the top 5 time series from socket server here
+				closestTimeSeriesBuffer = incomingSocket.recv(BUFFERSIZE)
+				closestTimeSeriesBuffer = closestTimeSeriesBuffer.decode()
+				# Converts buffer to JSON string
+				closestTimeSeriesString = str(closestTimeSeriesBuffer)
 				s.shutdown(socket.SHUT_RDWR)
 				s.close()
-				sys.exit()
+				# Convert JSON string to JSON object and return
+				return json.loads(closestTimeseriesString)
 
 @app.route('/simquery', methods=['GET'])
 def get_simquery():
@@ -236,5 +235,4 @@ def post_simquery():
 	log.info(metadata)
 	log.info(metadata["metadata"])
 	return jsonify({'timeseries': closestTimeseries, 'metadata': metadata["metadata"]}), 200
-
 

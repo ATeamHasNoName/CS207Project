@@ -35,32 +35,32 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 1)
-		os.remove("ts_1.dbdb")
+		DB.remove("ts_1.dbdb")
 
 	def test_storeAndGetWithoutKey(self):
 		# Key is randomized here
 		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 1)
-		os.remove("ts_" + key + ".dbdb")
+		DB.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetSize(self):
 		key = self.wdb.storeKeyAndTimeSeries(timeSeries=self.ts)
 		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 5)
-		os.remove("ts_" + key + ".dbdb")
+		DB.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetWithKeyNoTime(self):
 		key = "2"
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_notime)
 		ts_retrieved = self.wdb.getTimeSeries(key)
 		self.assertEquals(ts_retrieved.values()[0], 2)
-		os.remove("ts_" + key + ".dbdb")
+		DB.remove("ts_" + key + ".dbdb")
 
 	def test_storeAndGetSizeSingle(self):
 		key = 999
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts_single)
 		self.assertEquals(self.wdb.getTimeSeriesSize(key=key), 1)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_inputClassIsNotTimeSeries(self):
 		with self.assertRaises(ValueError):
@@ -71,8 +71,8 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.storeKeyAndTimeSeries(key=key, timeSeries=self.ts)
 		with self.assertRaises(ValueError):
 			self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
-			os.remove("ts_" + str(key) + ".dbdb")
-		os.remove("ts_" + str(key) + ".dbdb")
+			DB.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	# Test cache
 	
@@ -85,7 +85,7 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(key)
 		self.assertEquals(self.wdb.cache, {'1': self.ts})
 		self.assertEquals(self.wdb.keyToCount, {'1': 1})
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_cacheNotFull_getMultiple(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -97,8 +97,8 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 1})
-		os.remove("ts_" + str(1) + ".dbdb")
-		os.remove("ts_" + str(2) + ".dbdb")
+		DB.remove("ts_" + str(1) + ".dbdb")
+		DB.remove("ts_" + str(2) + ".dbdb")
 
 	def test_cacheFull(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -112,9 +112,9 @@ class WrappedDBTest(unittest.TestCase):
 		# key 3 should be replaced by 2
 		self.assertEquals(self.wdb.cache, {'1': self.ts, '2': self.ts_single})
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 2, '3': 1})
-		os.remove("ts_" + str(1) + ".dbdb")
-		os.remove("ts_" + str(2) + ".dbdb")
-		os.remove("ts_" + str(3) + ".dbdb")
+		DB.remove("ts_" + str(1) + ".dbdb")
+		DB.remove("ts_" + str(2) + ".dbdb")
+		DB.remove("ts_" + str(3) + ".dbdb")
 
 	def test_cacheFullComplex(self):
 		self.wdb.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -130,9 +130,9 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(sorted(list(self.wdb.cache.keys())), ['2', '3'])
 		self.assertEquals(self.wdb.keyToCount, {'1': 2, '2': 3, '3': 3})
-		os.remove("ts_" + str(1) + ".dbdb")
-		os.remove("ts_" + str(2) + ".dbdb")
-		os.remove("ts_" + str(3) + ".dbdb")
+		DB.remove("ts_" + str(1) + ".dbdb")
+		DB.remove("ts_" + str(2) + ".dbdb")
+		DB.remove("ts_" + str(3) + ".dbdb")
 
 	def test_noCache(self):
 		self.wdb_noCache.storeKeyAndTimeSeries(key=1, timeSeries=self.ts)
@@ -144,9 +144,9 @@ class WrappedDBTest(unittest.TestCase):
 		self.wdb.getTimeSeries(2)
 		self.wdb.getTimeSeries(2)
 		self.assertEquals(self.wdb_noCache.cache, {})
-		os.remove("ts_" + str(1) + ".dbdb")
-		os.remove("ts_" + str(2) + ".dbdb")
-		os.remove("ts_" + str(3) + ".dbdb")
+		DB.remove("ts_" + str(1) + ".dbdb")
+		DB.remove("ts_" + str(2) + ".dbdb")
+		DB.remove("ts_" + str(3) + ".dbdb")
 
 	# Test encode and decode
 

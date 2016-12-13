@@ -29,7 +29,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		self.fsm1.store(timeSeries=self.ts, key=key)
 		ts_retrieved = self.fsm1.get(key)
 		self.assertTrue(isinstance(ts_retrieved, SizedContainerTimeSeriesInterface))
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_intKeyAndGet(self):
 		key = 123
@@ -37,7 +37,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 1)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_intKeyAndSetOver(self):
 		key = 123
@@ -45,7 +45,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], -2)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_noTime(self):
 		key = "5"
@@ -53,7 +53,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 2)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_negativeKeyAndArrayTimeSeries(self):
 		key = -3
@@ -61,7 +61,7 @@ class FileStorageManagerTest(unittest.TestCase):
 		ts_retrieved = self.fsm1.get(key)
 		values = ts_retrieved.values()
 		self.assertEqual(values[0], 1)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_getNonExistentTimeSeries(self):
 		key = "191919"
@@ -71,25 +71,25 @@ class FileStorageManagerTest(unittest.TestCase):
 		key = "1"
 		self.fsm1.store(timeSeries=self.ts, key=key)
 		self.assertEqual(self.fsm1.size(key), 5)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_noTimeSize(self):
 		key = "1"
 		self.fsm1.store(timeSeries=self.ts_notime, key=key)
 		self.assertEqual(self.fsm1.size(key), 3)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_singleSize(self):
 		key = "1"
 		self.fsm1.store(timeSeries=self.ts_single, key=key)
 		self.assertEqual(self.fsm1.size(key), 1)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_atsSize(self):
 		key = "1"
 		self.fsm1.store(timeSeries=self.ats, key=key)
 		self.assertEqual( self.fsm1.size(key), 3)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_getNonExistentSize(self):
 		key = 1919

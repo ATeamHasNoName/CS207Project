@@ -77,7 +77,7 @@ class WrappedDB:
 		>>> key = wdb.storeKeyAndTimeSeries(ts)
 		>>> wdb.getTimeSeriesSize(key)
 		5
-		>>> os.remove('ts_' + str(key) + '.dbdb')
+		>>> DB.remove('ts_' + str(key) + '.dbdb')
 		"""
 		if not isinstance(timeSeries, SizedContainerTimeSeriesInterface):
 			raise ValueError('Input class is not time series')
@@ -138,7 +138,7 @@ class WrappedDB:
 			size = existingDB.get("size")
 		except KeyError:
 			# Timeseries does not exist, delete the filename
-			os.remove(filename)
+			DB.remove(filename)
 			return - 1
 		return int(existingDB.get("size"))
 
@@ -231,7 +231,7 @@ class WrappedDB:
 		>>> key = wdb.storeKeyAndTimeSeries(key="1", timeSeries=ts)
 		>>> wdb.getTimeSeries("1").values()
 		[0.0, 2.0, -1.0, 0.5, 0.0]
-		>>> os.remove('ts_1.dbdb')
+		>>> DB.remove('ts_1.dbdb')
 		"""
 		key = str(key)
 
@@ -249,7 +249,7 @@ class WrappedDB:
 			existingDB = DB.connect(filename)
 			timeSeriesString = existingDB.get("timeseries")
 		except KeyError:
-			os.remove(filename)
+			DB.remove(filename)
 			return None
 
 		timeSeries = self._decode(timeSeriesString)

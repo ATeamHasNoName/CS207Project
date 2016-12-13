@@ -28,7 +28,7 @@ class SMTimeSeries(SizedContainerTimeSeriesInterface):
 		>>> smts = SMTimeSeries([1.5, 2,6,8,9], [1, 3, 0, 1.5, 10], key = "1")
 		>>> type(smts)
 		<class 'SMTimeSeries.SMTimeSeries'>
-		>>> os.remove("ts_1.dbdb")
+		>>> DB.remove("ts_1.dbdb")
 		"""
 
 		self.DB = WrappedDB()

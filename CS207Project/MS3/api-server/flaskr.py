@@ -6,9 +6,9 @@ from flask import Flask, request, abort, jsonify, make_response
 from flask.ext.sqlalchemy import SQLAlchemy, DeclarativeMeta
 from json import JSONEncoder
 
-# sys.path.append('../'); from TSDBSerialize import Serialize
-# sys.path.append('../../MS2/'); from FileStorageManager import FileStorageManager
-# sys.path.append('../../MS1/'); from TimeSeries import TimeSeries
+sys.path.append('../'); from TSDBSerialize import Serialize
+sys.path.append('../../MS2/'); from FileStorageManager import FileStorageManager
+sys.path.append('../../MS1/'); from TimeSeries import TimeSeries
 
 log = logging.getLogger(__name__)
 
@@ -187,13 +187,8 @@ def create_timeseries():
 	db.session.add(prod)
 	db.session.commit()
 
-	# TODO: Update vantage points if necessary
-
-	# fsm = FileStorageManager()
-	# serialize = Serialize()
-	# # Convert the JSON object to a TimeSeries object to store it in FSM
-	# timeseriesObject = serialize.json_to_ts(timeseries)
-	# fsm.store(timeSeries=timeseriesObject, key=tid)
+	# Also store time series inside FSM
+	FileStorageManager().store(timeSeries=Serialize().json_to_ts(timeseries), key=tid)
 	
 	return jsonify(timeseries), 201
 
@@ -207,13 +202,12 @@ def get_timeseries_with_id(tid):
 		abort(404)
 	log.info('Getting Timeseries with id=%s', tid)
 
-	# fsm = FileStorageManager()
-	# serialize = Serialize()
-	# timeseriesObject = fsm.get(key=tid)
-
-	# timeseriesJson = serialize.ts_to_json(timeseriesObject)
+	fsm = FileStorageManager()
+	serialize = Serialize()
+	timeseriesObject = fsm.get(key=tid)
+	timeseriesJson = serialize.ts_to_json(timeseriesObject)
 	
-	return jsonify({'metadata': timeseries}), 200
+	return jsonify({'metadata': timeseries, 'timeseries': timeseriesJson}), 200
 
 # @app.route('/simquery', methods=['GET'])
 # def get_simquery():

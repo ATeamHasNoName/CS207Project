@@ -54,7 +54,7 @@ class FileStorageManager(StorageManagerInterface):
 		>>> key = fsm.store(timeSeries=ts, key="1")
 		>>> fsm.size(key)
 		5
-		>>> os.remove("ts_" + str(key) + ".dbdb")
+		>>> DB.remove("ts_" + str(key) + ".dbdb")
 		"""
 		genKey = self.db.storeKeyAndTimeSeries(timeSeries=timeSeries, key=key)
 		return genKey
@@ -108,6 +108,6 @@ class FileStorageManager(StorageManagerInterface):
 		>>> secondval = fsm.get(key).values()[1]
 		>>> secondval
 		2.0
-		>>> os.remove("ts_" + str(key) + ".dbdb")
+		>>> DB.remove("ts_" + str(key) + ".dbdb")
 		"""
 		return self.db.getTimeSeries(key=key)

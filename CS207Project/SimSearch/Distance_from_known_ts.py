@@ -96,7 +96,7 @@ try:
 	
 except KeyError:
 	# Have to delete file that is created in the try block above or this will cause the connect in Step 2 to crash
-	os.remove(vantage_index_file_name)
+	DB.remove(vantage_index_file_name)
 	
 	print('Not stored in disk, calculate distances')
 

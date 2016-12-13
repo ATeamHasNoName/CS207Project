@@ -96,7 +96,7 @@ class ValueRef(object):
 		>>> ref.store(storage)
 		>>> ref.get(storage)
 		'123'
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		"read bytes for value from disk"
 		if self._referent is None and self._address:
@@ -122,7 +122,7 @@ class ValueRef(object):
 		>>> ref.store(storage)
 		>>> ref.get(storage)
 		''
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		#called by BinaryNode.store_refs
 		if self._referent is not None and not self._address:
@@ -159,7 +159,7 @@ class BinaryNodeRef(ValueRef):
 		<class 'DB.BinaryNode'>
 		>>> node.key
 		'1'
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		if self._referent:
 			self._referent.store_refs(storage)
@@ -183,7 +183,7 @@ class BinaryNodeRef(ValueRef):
 		>>> referent = BinaryNode(ValueRef(), '1', ValueRef(), ValueRef())
 		>>> type(ref.referent_to_bytes(referent))
 		<class 'bytes'>
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 
 		"use pickle to convert node to bytes"
@@ -217,7 +217,7 @@ class BinaryNodeRef(ValueRef):
 		<class 'DB.BinaryNode'>
 		>>> node.key
 		'1'
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		"unpickle bytes to get a node object"
 		d = pickle.loads(string)
@@ -501,7 +501,7 @@ class BinaryNode(object):
 		>>> node.store_refs(storage)
 		>>> node.value_ref.get(storage)
 		'123'
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		self.value_ref.store(storage)
 		self.left_ref.store(storage)
@@ -528,7 +528,7 @@ class BinaryTree(object):
 		>>> btree = BinaryTree(storage)
 		>>> type(btree)
 		<class 'DB.BinaryTree'>
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		self._storage = storage
 		self._refresh_tree_ref()
@@ -886,7 +886,7 @@ class Storage(object):
 		>>> storage = Storage(f)
 		>>> type(storage)
 		<class 'DB.Storage'>
-		>>> os.remove('test.dbdb')
+		>>> DB.remove('test.dbdb')
 		"""
 		self._f = f
 		self.locked = False
@@ -1228,9 +1228,14 @@ class DB(object):
 	associated storage.
 	"""
 	def connect(dbname):
+		BASE_PATH = "/Users/leonardloo/Desktop/Harvard Classes/CS207/CS207Project/CS207Project/MS3/"
 		try:
-			f = open(dbname, 'r+b')
+			f = open(BASE_PATH + dbname, 'r+b')
 		except IOError:
-			fd = os.open(dbname, os.O_RDWR | os.O_CREAT)
+			fd = os.open(BASE_PATH + dbname, os.O_RDWR | os.O_CREAT)
 			f = os.fdopen(fd, 'r+b')
 		return DBDB(f)
+
+	def remove(dbname):
+		BASE_PATH = "/Users/leonardloo/Desktop/Harvard Classes/CS207/CS207Project/CS207Project/MS3/"
+		os.remove(BASE_PATH + dbname)

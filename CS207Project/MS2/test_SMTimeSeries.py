@@ -25,8 +25,8 @@ class SMTimeSeriesTest(unittest.TestCase):
 		self.smt2 = SMTimeSeries([0, 5, 10], [1, 2, 3], self.key2)
 		
 	def tearDown(self):
-		os.remove("ts_" + self.key + ".dbdb")
-		os.remove("ts_" + self.key2 + ".dbdb")
+		DB.remove("ts_" + self.key + ".dbdb")
+		DB.remove("ts_" + self.key2 + ".dbdb")
 		del self.values
 		del self.times
 		del self.key
@@ -48,14 +48,14 @@ class SMTimeSeriesTest(unittest.TestCase):
 		timeSeriesFromDB = self.smt1.from_db(self.key)
 		# Check if the fetched SMTimeSeries is the same class as was instantiated:
 		self.assertTrue(timeSeriesFromDB == self.ts1)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	def test_from_db_without_key(self):
 		key = "123"
 		self.DB.storeKeyAndTimeSeries(key = key, timeSeries = self.ts1)
 		timeSeriesFromDB = self.smt1.from_db("12345")
 		self.assertTrue(timeSeriesFromDB is None)
-		os.remove("ts_" + str(key) + ".dbdb")
+		DB.remove("ts_" + str(key) + ".dbdb")
 
 	"""
 	Tests for the delegation methods:
