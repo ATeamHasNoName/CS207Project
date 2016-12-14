@@ -29,3 +29,14 @@ Instructions for installing on new EC2 instance:
 6) Run the server setup script: <code>bash bin/serversetup.sh</code>. Note that you might have to run this serversetup.sh file twice for portalocker to be successfully installed due to some unknown race condition in the script.
 
 The server is now up and running and you can test the various functions. Note that everytime you run the <code>serversetup.sh</code> file you will clear all databases! Also you have to run the <code>serversetup.sh</code> file from the <code>MS3</code> directory.
+
+Here's the Extra Credit we worked on:
+
+1) Realized a fix in the serversetup.sh script where we have to run <code>sudo pkill -f python</code>, and Fuk promised extra credit.
+
+2) Upon storing a new time series, we do multiple things: A) Insert the kernel distance between this time series and all vantage points into the respective Red Black Trees, B) When there are more than 50 time series inserted, the vantage points will be resampled and Red Black Trees rebuilt
+
+3) FileStorageManager uses a smart cache in memory to prevent too many retrievals from disk. Specifically, it keeps track of the number of times a time series ID gets called, and stores the most frequently accessed time series in memory for fast retrieval.
+
+4) Part 10's range queries such as mean_in, and std_in can be chained together.
+
