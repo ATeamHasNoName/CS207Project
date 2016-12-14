@@ -58,8 +58,8 @@ if len(sys.argv) < 2:
 else:
 	inputTS = load_ts_file(sys.argv[1])
 
-num_vantage_points = 5
-num_of_timeseries = 20
+num_vantage_points = 20
+num_of_timeseries = 1000
 num_top = int(sys.argv[2])
 
 def tsmaker(m, s, j):

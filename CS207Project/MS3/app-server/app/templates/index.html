@@ -1,9 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Flot Examples: Multiple Axes</title>
+	<title>CS207 - Find the closest time series</title>
 	<link href="428/css/main.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
 	<script language="javascript" type="text/javascript" src="428/js/jquery.js"></script>
 	<script language="javascript" type="text/javascript" src="428/js/jquery.flot.js"></script>
@@ -12,21 +12,25 @@
 
 	$(function() {
 
+		var contents
+
 		//var content = [[1,0.61], [2,0.32], [3,0.35], [4,0.31], [5,0.55], [6,0.64], [7,0.02], [8,0.88], [9,0.99], [10,0.99], [11,0.21], [12,0.24], [13,0.48], [14,0.99], [15,0.13], [16,0.04], [17,0.37], [18,0.23], [19,0.42], [20,0.01], [21,0.9], [22,0.14], [23,0.814], [24,0.02], [25,0.74]];
-7
-		var Timeseries2 = [[1,0.80], [2,0.7580], [3,0.75470], [4,0.75490], [5,0.30], [6,0.550], [7,0.76930], [8,0.76940], [9,0.76880], [10,0.76780], [11,0.80], [12,0.77270], [13,0.77490], [14,0.410], [15,0.77410], [16,0.77320], [17,0.270], [18,0.370], [19,0.240], [20,0.120], [21,0.7720], [22,0.77210], [23,0.77170], [24,0.77040], [25,0.7690]];
+
+		//var Timeseries2 = [[1,0.80], [2,0.7580], [3,0.75470], [4,0.75490], [5,0.30], [6,0.550], [7,0.76930], [8,0.76940], [9,0.76880], [10,0.76780], [11,0.80], [12,0.77270], [13,0.77490], [14,0.410], [15,0.77410], [16,0.77320], [17,0.270], [18,0.370], [19,0.240], [20,0.120], [21,0.7720], [22,0.77210], [23,0.77170], [24,0.77040], [25,0.7690]];
 
 		function euroFormatter(v, axis) {
 			return v.toFixed(axis.tickDecimals);
 		}
 
 		content_list = []
+		content_list_fromID = []
+		content_list_fromFile = []
 
 		function doPlot(position, content_list) {
 			console.log("function called")
 			$.plot("#placeholder", content_list, {
 				xaxes: [ { } ],
-				yaxes: [ { min: 0 }, {
+				yaxes: [ { }, {
 					// align if we are to the right
 					alignTicksWithAxis: position == "right" ? 1 : null,
 					position: position,
@@ -54,61 +58,40 @@
 			return timeseriesArray
 		}
 
-		function readSingleFile(evt) {
-			//Retrieve the first (and only!) File from the FileList object
-			//http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html#fbid=urjzZXW8lIf
-			var f = evt.target.files[0]; 
+/////////////////////////////////////////////Work Flow 1
 
-			if (f) {
-			  var r = new FileReader();
-			  r.onload = function(e) { 
-				  var contents = e.target.result;
-				  timeseriesArray = convertFromJSONToTimeseriesArray(contents)
-				  console.log("heyyyy")
-				  console.log(timeseriesArray)
-				  item = {data: timeseriesArray, label: "Input Time Series"}
-				  content_list.push(item)
+		//Plot the single TS from the input TS id
+		$("#plot_ts_id").click(function () {
+			var providedID = document.getElementById("ts-id").value.toString();
+			console.log(providedID)
+			console.log("grab id")
+			//get this TS from Db
+			$.get("/timeseries/" + providedID, function(data, status) {
+					console.log(data);
 
-				  content_list_withinput = content_list
+					var id_metadata = data["metadata"];
+					var id_ts = data["timeseries"];
+					ts_fromID = convertFromNonStringJSONToTimeseriesArray(id_ts)
+					console.log("convert ts")
+					console.log(ts_fromID)
+					item = {data: ts_fromID, label: "Input Time Series"}
+					content_list_fromID.push(item)
+					content_list_fromID_withinput = content_list_fromID
+					content_list_onlyinput = content_list_fromID
 
-				  // contents.forEach(function(x) {
-				  // 	console.log(x)
-				  // })
-				  // console.log(contents)
-				  //console.log(type(contents))
-				  $("#plot_ts_file").click(function () {
-					doPlot("right", content_list);
-				});
-				alert( "Got the file" 
-					  +" name: " + f.name + "   "
-					  +" type: " + f.type + "   "
-					  +" size: " + f.size + " bytes"
-					  //PASS "contents" TO FUNCTION DOPLOT
-					  //doPlot("right", contents)
-				);  
-			  }
-			  r.readAsText(f);
-			} else { 
-			  alert("Failed to load file");
-			}
-		  }
+					doPlot("right", content_list_fromID);
 
-		document.getElementById('upload_ts_file').addEventListener('change', readSingleFile, false);
+			});
+		});
 
-
-
-
-
-	
-
-
+          //Get Input time series ID and plot the k closest TS on the graph
 		  $("#plot_all_ts").click(function () {
 		  	  var closestK = document.getElementById("similar_ts_number").value.toString();
 		  	  console.log(closestK)
 		  	  var providedID = document.getElementById("ts-id").value.toString();
 		  	  console.log(providedID)
 				// Get closest k to provided id
-				$.get(BASE_URL + "/simquery?k="+ closestK + "&id=" + providedID, function(data, status) {
+				$.get("/simquery?k="+ closestK + "&id=" + providedID, function(data, status) {
 					console.log(data);
 					console.log("meow");
 
@@ -131,119 +114,159 @@
 					    	transformed_ts.push([key, value]);
 					    });
 					    sub_item = { data: transformed_ts, label: "Time series "+ k_count.toString() };
-					    content_list_withinput.push(sub_item);
+					    content_list_fromID_withinput.push(sub_item);
 					    console.log("Done with ts");
 					    k_count += 1;
 					});
 
-
-				//   test_ts = convertFromNonStringJSONToTimeseriesArray(all_k_ts)
-				//   console.log("grad all k TS")
-				//   console.log("test_ts")
-				//   //console.log(test_ts) //[Array[2], Array[2]]
-				//   //console.log(test_ts[1]) //each time series
-				//   //console.log(test_ts[1][1])
-				//   //console.log(convertFromNonStringJSONToTimeseriesArray(test_ts[1][1])) //pass to list
-				//   //console.log(test_ts.length)
-				//   for(var i = 0, size = test_ts.length; i < size ; i++){
-				//   	var legend_index = i+1
-				//   	var item = test_ts[i][1]
-				//   	ts = convertFromNonStringJSONToTimeseriesArray(item)
-				//   	console.log(ts)
-				//   	console.log("meow meow")
-				//   	sub_item = { data: ts, label: "Time series "+ legend_index.toString() }
-				//   	content_list_withinput.push(sub_item)
-				//   }
-
-				// });
-
-
-			doPlot("right", content_list_withinput);
+			doPlot("right", content_list_fromID_withinput);
+			//content_list_fromID_withinput = content_list_onlyinput
+			});
 		});
 
-		//var closestK = document.getElementById("similar_ts_number").value.toString();
-		//console.log(closestK)
-		//var providedID = document.getElementById("ts-id").value.toString();
-		//console.log(providedID)
-
-		providedJSON = {};
-
-		var BASE_URL = "";
-		//var BASE_URL = "http://localhost:5000";
+/////////////////////////////////////////////Work Flow 2
 
 
-		// // Get closest k to provided timeseries
-		// $.ajax({
-		//   url: BASE_URL + "/simquery?k=" + closestK,
-		//   method: 'POST',
-		//   contentType: 'application/json; charset=utf-8',
-		//   dataType: 'json',
-		//   data: JSON.stringify(providedJSON)
-		// })
-		// .done(function (data) {
-		//   console.log(data);
-		// });
+       //Plot the single TS from the File uploaded 
+		function readSingleFile(evt) {
+			//Retrieve the first (and only!) File from the FileList object
+			//http://www.htmlgoodies.com/beyond/javascript/read-text-files-using-the-javascript-filereader.html#fbid=urjzZXW8lIf
+			var f = evt.target.files[0]; 
 
-		console.log(providedJSON)
+			if (f) {
+			  var r = new FileReader();
+			  r.onload = function(e) { 
+				  contents = e.target.result;
+				  timeseriesArray = convertFromJSONToTimeseriesArray(contents)
+				  console.log("heyyyy")
+				  console.log(timeseriesArray)
+				  item = {data: timeseriesArray, label: "Input Time Series"}
+				  content_list_fromFile.push(item)
 
+				  content_list_fromFile_withinput = content_list_fromFile
+				  content_list_fromFile_onlyinput = content_list_fromFile
 
-/*		$("#upload_ts_file").change(function() {
-		// will log a FileList object, view gifs below
-			console.log(this.files);
-
-			// grab the first file in the FileList object and pass it to the readfile function
-			readFile(this.file[0])
-		});
-
-		var control = document.getElementById("upload_ts_file");
-		control.addEventListener("change", function(event) {
-
-			// When the control has changed, there are new files
-
-			var i = 0,
-				files = control.files,
-				len = files.length;
-
-			for (; i < len; i++) {
-				console.log("Filename: " + files[i].name);
-				console.log("Type: " + files[i].type);
-				console.log("Size: " + files[i].size + " bytes");
+				  // contents.forEach(function(x) {
+				  // 	console.log(x)
+				  // })
+				  // console.log(contents)
+				  //console.log(type(contents))
+				  $("#plot_ts_file").click(function () {
+					doPlot("right", content_list_fromFile_withinput);
+				});
+				alert( "Got the file" 
+					  +" name: " + f.name + "   "
+					  +" type: " + f.type + "   "
+					  +" size: " + f.size + " bytes"
+					  //PASS "contents" TO FUNCTION DOPLOT
+					  //doPlot("right", contents)
+				);  
+			  }
+			  r.readAsText(f);
+			} else { 
+			  alert("Failed to load file");
 			}
+		  }
 
-		}, false);
-*/
-
-
+		document.getElementById('upload_ts_file').addEventListener('change', readSingleFile, false);
 
 
-		// Add the Flot version string to the footer
+		  $("#plot_all_ts2").click(function () {
+		  	  var closestK = document.getElementById("similar_ts_number2").value.toString();
+		  	  console.log(closestK)
+		  	  var providedJSon = $.parseJSON(contents);
+		  	  console.log(typeof(providedJSon))
+		  	  console.log(providedJSon)
+		  	  $.post("/simquery", {"k": closestK, "timeseries": JSON.stringify(providedJSon)},
 
-		//$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
+/*		$.ajax({
+		  url: "/simquery",
+		  method: 'POST',
+		  contentType: 'application/json; charset=utf-8',
+		  dataType: 'json',
+		  data: JSON.stringify({"k": closestK, "timeseries": providedJSon})
+		})*/
+		//.done
+		function (data) {
+					console.log(data);
+					console.log("meow");
+
+					var metadata_list = data["metadata"];
+
+
+				  // metadata_ts = convertFromJSONToTimeseriesArray(data)
+				  //console.log(metadata_ts)
+				  // meatadata_list = metadata_ts[0][1] //meatadata_list[0]
+				  console.log(metadata_list);
+				  //console.log(convertFromJSONToTimeseriesArray(meatadata_list))
+				  //{blarg: 0.0976127, level: "C", mean: 0.525, std: 0.287228, tid: "123                             "}
+				  // all_k_ts = metadata_ts[1][1]
+				  var timeseries_dict = data["timeseries"];
+				  var k_count = 1;
+					$.each(timeseries_dict, function(tid, timeseriesObj) {
+					    console.log(tid);
+					    var transformed_ts = [];
+					    $.each(timeseriesObj, function(key, value) {
+					    	transformed_ts.push([key, value]);
+					    });
+					    sub_item = { data: transformed_ts, label: "Time series "+ k_count.toString() };
+					    content_list_fromFile_withinput.push(sub_item);
+					    console.log("Done with ts 222");
+					    k_count += 1;
+					});
+
+			doPlot("right", content_list_fromFile_withinput);
+			content_list_fromFile_withinput = content_list_fromFile_onlyinput
+			//content_list_fromID_withinput = content_list_onlyinput
+			});
+
+
+		});
 	});
+	
 
-	</script>
+
+</script>
 </head>
 <body>
 
 	<div id="header">
-		<h2>Multiple Time Series</h2>
+		<h2>Find the Closest Timeseries</h2>
 	</div>
 
+	
 	
 	<br style="margin-bottom:240px;"></br>
 	
 
 	<div id="content">
 
+		<i class="fa fa-spinner fa-spin" style="font-size:24px"></i>  Find the most similar timeseries to a "given" timeseries in a database of all time series.
+	
+		<p>&#160;&#160;&#160;&#160;&#160;&#160;This web page will support two task:</p>
+		<p>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<i class="fa fa-binoculars"></i> Find the closest K timeseries for a given uploaded time series</p>
+		<p>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<i class="fa fa-binoculars"></i> Find the closest K timeseries for an existing timeseries in the database</p>
+		
+		<p></p>
+		<i class="fa fa-info" style="font-size:24px"></i><font size="2"> Please refresh the webpage for each new task!</font>
+
+
+		<br style="margin-bottom:20px;"></br>
+
+
+		<div class="aligncenter" style="width:1000px;"><hr /></div>
+		<br style="margin-bottom:10px;"></br>
+
+		<p><i class="fa fa-sign-in"></i><strong>  TASK 1: </strong>  Find the closest K timeseries for an existing timeseries in the database</p>
+
+		<p></p>
+
 		<div class="col-md-2">
-			<p><strong><u>Please select a time-series ID</u></strong></p>
+			<p><strong><u>Please select a timeseries ID</u></strong></p>
 		</div>
 
 		<p></p>
 
-
-
-		<p></p>
 
 		<div class="col-md-6">
 			Timeseries ID: <input type="text" id="ts-id">
@@ -252,13 +275,34 @@
 		<p></p>
 
 		<div class="col-md-2">
-			<button id="plot_ts_id" style="Nunito">Plot this time series</button>
-			<button id="save_ts_id">Save this time series to database</button>
+			<button id="plot_ts_id" style="Nunito">Plot Input Timeseries</button>
 			<br style="margin-bottom:30px;"></br>
 		</div>
 
+
+		<div class="col-md-6">
+			How many other similar time series you are looking for? <input type="text" id="similar_ts_number">
+		</div>
+
+		<p></p>
+
 		<div class="col-md-2">
-			<p><strong><u>Or upload a time series file</u></strong></p>
+			<button id="plot_all_ts">Plot Closest Timeseries</button>
+			<br style="margin-bottom:30px;"></br>
+		</div>
+
+
+		 <div class="aligncenter" style="width:1000px;"><hr /></div>
+
+
+		 <br style="margin-bottom:10px;"></br>
+
+		<p><i class="fa fa-sign-in"></i><strong>  TASK 2: </strong>  Find the closest K timeseries for a given uploaded time series</p>
+
+		<p></p>
+
+		<div class="col-md-2">
+			<p><strong><u>Please upload a timeseries file</u></strong></p>
 		</div>
 
 		<p></p>
@@ -270,21 +314,19 @@
 		<p></p>
 
 		<div class="col-md-2">
-			<button id="plot_ts_file">Plot this time series</button>
-			<button id="save_ts_file">Save this time series to database</button>
+			<button id="plot_ts_file">Plot Input timeseries</button>
 			<br style="margin-bottom:30px;"></br>
 		</div>
 
+	
 		<div class="col-md-6">
-			How many other similar time series you are looking for? <input type="text" id="similar_ts_number">
-			<p></p>
-			Browse a File <input type="file" id="upload_ts_metadata">
+			How many other similar time series you are looking for? <input type="text" id="similar_ts_number2">
 		</div>
 
 		<p></p>
 
 		<div class="col-md-2">
-			<button id="plot_all_ts">Plot those time series!</button>
+			<button id="plot_all_ts2">Plot  Closest  Timeseries</button>
 			<br style="margin-bottom:30px;"></br>
 		</div>
 
@@ -293,9 +335,9 @@
 			<div id="placeholder" class="demo-placeholder"></div>
 		</div>
 
-		<p>Let's do this !! Crush 207 !!</p>
+	<div id="content">
 
-		<p>As illustrated ... </p>
+		
 
 	
 	</div>

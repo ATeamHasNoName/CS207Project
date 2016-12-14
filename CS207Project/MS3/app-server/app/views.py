@@ -193,7 +193,6 @@ def get_simquery():
 	if k is None:
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
-	
 	# TODO: Send to socket server
 	closestTimeseries = _getClosestTimeSeries_from_socket_server(k_closest=k, ts_or_id=0, timeseriesID=tid)
 
@@ -218,17 +217,21 @@ def post_simquery():
 	Get top k similar time series with respect to the input time series in JSON form in 
 	the POST body.
 	"""
-	if (not request.json or not 'timeseries' in request.json):
+	if (not request.form or not 'timeseries' in request.form):
 		abort(400)
 	# Timeseries is dictionary/JSON of the format of {'key': value}
-	timeseries = request.json['timeseries']
+	timeseries = json.loads(request.form['timeseries'])
+	log.info(timeseries)
+	log.info(len(timeseries))
 	if not isinstance(timeseries, dict) or len(timeseries) != _requiredLengthOfTimeSeries():
 		abort(400, ('Input time series is not a json object or its length of %s is not %s') % (str(len(timeseries)), str(_requiredLengthOfTimeSeries())))
-	k = request.json['k']
+	k = request.form['k']
 	if k is None:
 		# If k not provided, default to finding top 5 similar timeseries
 		k = 5
-
+	log.info("Hey")
+	log.info(timeseries)
+	log.info(k)
 	# TODO: test this with actual client code
 	closestTimeseries = _getClosestTimeSeries_from_socket_server(k_closest=k, ts_or_id=1, timeseriesJSON=timeseries)
 
@@ -239,8 +242,5 @@ def post_simquery():
 	# Sort closestTimeseries by keys
 	closestTimeseries = OrderedDict(sorted(closestTimeseries.items()))
 
-	log.info("metadata in simquery:")
-	log.info(metadata)
-	log.info(metadata["metadata"])
 	return jsonify({'timeseries': closestTimeseries, 'metadata': metadata["metadata"]}), 200
 

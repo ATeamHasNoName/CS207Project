@@ -24,8 +24,8 @@ def FindTimeSeriesByKey(key):
 
 # py.test --doctest-modules  --cov --cov-report term-missing Distance_from_known_ts.py
 def Simsearch(inputTS, k, id_or_ts):
-	num_vantage_points = 5 # NOTE: Remember to change this number in flaskr.py too!
-	num_of_timeseries = 20
+	num_vantage_points = 20 # NOTE: Remember to change this number in flaskr.py too!
+	num_of_timeseries = 1000
 	num_top = k
 	def tsmaker(m, s, j):
 		'''

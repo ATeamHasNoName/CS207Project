@@ -37,7 +37,7 @@ url = 'postgresql://{}:{}@{}:{}/{}'
 url = url.format(user, password, host, port, db)
 app.config['SQLALCHEMY_DATABASE_URI'] = url # 'sqlite:////tmp/tasks.db'
 db = SQLAlchemy(app)
-num_vantage_points = 5
+num_vantage_points = 20
 
 
 class TimeSeriesModel(db.Model):
